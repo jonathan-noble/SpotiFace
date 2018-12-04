@@ -1,8 +1,9 @@
 # emotion-detection-player: Final Year Project
 
-The dataset I acquired is from https://www.kaggle.com/c/challenges-in-representation-learning-facial-expression-recognition-challenge/data
+The dataset I acquired is from https://www.kaggle.com/c/challenges-in-representation-learning-facial-expression-recognition-challenge/data.
+
 The computer vision fundamentals, deep learning knowledge and sample codes that have significantly aided this project
-is from a book bundle "Deep Learning For Computer Vision" by Dr. Adrian Rosebrock.
+is from a book bundle "Deep Learning For Computer Vision" by Dr. Adrian Rosebrock. Below is the code that has served as my proof-of-concept for the prototype:
 
 > config/emotion_config.py
 
