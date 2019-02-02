@@ -6,6 +6,7 @@ import argparse
 import cv2
 import time
 import datetime
+import json
 
 # construct the argument parse and parse the arguments
 ap = argparse.ArgumentParser ()
@@ -35,6 +36,9 @@ PERIOD_OF_TIME = 5 # 5min
 
 
 def extractLabel(labeldetected):
+    with open("label.json", "w") as write_file:
+        json.dump(labeldetected, write_file)
+
     return print(labeldetected)
 
 
