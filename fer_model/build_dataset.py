@@ -1,5 +1,5 @@
-from config import emotion_config as config
-from pyimagesearch.io import hdf5datasetwriter
+from fer_model.config import emotion_config as config
+from fer_model.pyimagesearch.io import hdf5datasetwriter
 import numpy as np
 
 # open the input file for reading (skipping the header), then

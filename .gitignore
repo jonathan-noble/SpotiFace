@@ -116,3 +116,13 @@ dmypy.json
 fer2018/
 
 .idea/
+
+
+# JS and NodeJS
+elm-stuff
+.DS_Store
+node_modules
+.vscode
+solutions
+.next
+/dist/main.js

@@ -3,12 +3,11 @@ import matplotlib
 matplotlib.use("Agg")
 
 # import the necessary packages
-from config import emotion_config as config
-from pyimagesearch.preprocessing import imagetoarraypreprocessor
-from pyimagesearch.callbacks import epochcheckpoint
-from pyimagesearch.callbacks import trainingmonitor
-from pyimagesearch.io import hdf5datasetgenerator
-from pyimagesearch.nn.conv import emotionvggnet
+from fer_model.config import emotion_config as config
+from fer_model.pyimagesearch.preprocessing import imagetoarraypreprocessor
+from fer_model.pyimagesearch.callbacks import trainingmonitor, epochcheckpoint
+from fer_model.pyimagesearch.io import hdf5datasetgenerator
+from fer_model.pyimagesearch.nn.conv import emotionvggnet
 from keras.preprocessing.image import ImageDataGenerator
 from keras.optimizers import Adam
 from keras.models import load_model
@@ -55,7 +54,7 @@ figPath = os.path.sep.join([config.OUTPUT_PATH, "vggnet_emotion.png"])
 jsonPath = os.path.sep.join([config.OUTPUT_PATH,"vggnet_emotion.json"])
 callbacks = [
     epochcheckpoint.EpochCheckpoint(args["checkpoints"], every=5, startAt=args["start_epoch"]),
-    trainingmonitor.TrainingMonitor(figPath, jsonPath=jsonPath,startAt=args["start_epoch"])
+    trainingmonitor.TrainingMonitor(figPath, jsonPath=jsonPath, startAt=args["start_epoch"])
 ]
 
 # train the network

@@ -36,7 +36,7 @@ PERIOD_OF_TIME = 5 # 5min
 
 
 def extractLabel(labeldetected):
-    with open("label.json", "w") as write_file:
+    with open("..\spotify_webapp\client\public\label.json", "w") as write_file:
         json.dump(labeldetected, write_file)
 
     return print(labeldetected)

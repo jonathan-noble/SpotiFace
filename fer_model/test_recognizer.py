@@ -1,7 +1,7 @@
  # import the necessary packages
-from config import emotion_config as config
-from pyimagesearch.preprocessing import imagetoarraypreprocessor as imagetoap
-from pyimagesearch.io import hdf5datasetgenerator as hdf5dg
+ from fer_model.config import emotion_config as config
+ from fer_model.pyimagesearch.preprocessing import imagetoarraypreprocessor as imagetoap
+from fer_model.pyimagesearch.io import hdf5datasetgenerator as hdf5dg
 from keras.preprocessing.image import ImageDataGenerator
 from keras.models import load_model
 import argparse

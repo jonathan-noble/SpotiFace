@@ -2,7 +2,7 @@
 from os import path
 
 # define the base path to the emotion dataset
-BASE_PATH = r"C:\Users\schma\Documents\4th Yr\FYP\Interim\FYP_Software201819"
+BASE_PATH = r"C:\Users\schma\Documents\4th Yr\FYP\Interim\fer_model\FYP_Software201819"
 
 INPUT_PATH = path.sep.join([BASE_PATH, r"fer2018\datasets\fer2018.csv"])
 
