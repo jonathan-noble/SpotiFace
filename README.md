@@ -1,56 +1,9 @@
-# emotion-detection-player: Final Year Project
+# Emotion Detection Player: Final Year Project
 
-The dataset I acquired is from https://www.kaggle.com/c/challenges-in-representation-learning-facial-expression-recognition-challenge/data.
+An application system comprising a real-time facial expression recognition algorithmm that detects the user's current emotion(ranging from six emotions: happy, sad, angry, neutral, fear and surprise) and a media player exhibited under a web application which caters the best suitable music genre or video category according to the detected emotion.
+It would serve to be very convenient for modern music player applications such as Spotify or YouTube Music to be able to acquire a feature that extracts real-time facial emotion inputs from the user and outputs a playlist of songs or videos for the user's entertainment.
 
-The computer vision fundamentals, deep learning knowledge and sample codes that have significantly aided this project
-is from a book bundle "Deep Learning For Computer Vision" by Dr. Adrian Rosebrock. Below is the code that has served as my proof-of-concept for the prototype:
+The computer vision fundamentals, deep learning knowledge and sample codes that have significantly aided the Facial Expression Recognition (FER) model is from a book bundle "Deep Learning For Computer Vision" by Dr. Adrian Rosebrock. Moreover, the dataset I acquired is from a [Kaggle Contest](https://www.kaggle.com/c/challenges-in-representation-learning-facial-expression-recognition-challenge/data). The aforementioned (FER) model is stored under the **fer_model** directory.
 
-> config/emotion_config.py
 
-	The configuration for paths and where NUM_CLASSES and BATCH_SIZE are defined.
-
-> checkpoints
-
-	The current model compressed in an HDF5 file is placed here.
-
-> pyimagesearch/callbacks
-
-	This directory consists of two python scripts that consists of epoch_checkpoints.py that saves the model for every given number
-	and training_monitor.py used for illustrating the loss/accuracy plot of the current model.
-
-> pyimagesearch/io	
-
-	This directory is responsible for writing and loading the hdf5 files for further use.
-		
-> pyimagesearch/nn/conv/emotionvggnet.py
-
-	The vgg-like network class is defined here.
-		
-> pyimagesearch/preprocessing/imagetoarraypreprocessor.py
-
-	This is used for converting the images into a readable dimension for the datasets. 
-
-> build_dataset.py
-
-	The fer2018.csv file is ingested here where each instance i.e. image along with their corresponding labels are compressed in hdf5 files by their respective usage.
-		
-> train_recognizer.py
-
-	All the relevant packages for the config, model, hdf5datasetgenerator, epochcheckpoint, trainingmonitor, Adam optimizers, imagetoarraypreprocessor, imagedatagenerator and more are used here for training purposes.
-
-> test_recognizer.py
-
-	For testing the accuracy of the current model. 
-		
-> haarcascade_frontalface_default.xml
-
-	Essential cascade for face recognition.
-		
->emotion_detector.py
-
-	A cv2 package is used for developing a real-time face detection application, alongside its model applied for predicting in real-time.
-		
->visualize_architecture.py
-
-	This script is used to produce the architecture of the CNN model. 
-	
+The state-of-the-art web application built under the Node.js platform which uses the Express framework, React and the well-documented [API from Spotify](https://developer.spotify.com/documentation/web-api/) to create services corresponding to the labelled mood of the first component (FER model). This component is stored under the **spotify_webapp** directory.
