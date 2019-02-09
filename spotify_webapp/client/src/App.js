@@ -1,16 +1,10 @@
 import React, { Component } from 'react';
 import './App.css';
 
+/// <reference path="../node_modules/spotify-web-api-js/src/typings/spotify-web-api.d.ts" />
+
 import SpotifyWebApi from 'spotify-web-api-js';
 const spotifyApi = new SpotifyWebApi();
-
-
-// $.getJSON('label.json', function(data) {
-//     alert(data);
-// });
-
-// let labelledMood =  "happy";
-
 
 
 function loadJSON(path, success, error)
@@ -40,7 +34,7 @@ let labelledMood = ""
 loadJSON("label.json",
          function(data) {
            labelledMood = data
-           console.log(data); },
+           console.log("Labelled mood from JSON file: " + data); },
          function(xhr) { console.error(xhr); }
 );
 
@@ -57,7 +51,7 @@ class App extends Component {
       this.state = {
         loggedIn: token ? true : false,
         nowPlaying: { name: 'Not Checked', albumArt: '' },
-        // moodSearch: { name: 'Not Found'}
+        moodSearch: { name: 'Not Found', albumArt: ''}
       }
     }
 
@@ -77,33 +71,38 @@ class App extends Component {
   }
 
   getMoodPlaylist(label_from_json) {
-    // search tracks whose name, album or artist contains 'Love'
+    // search playlist that contains whichever mood is labelled
     spotifyApi.searchPlaylists(label_from_json + " Mood")
-      .then(function(data) {
-        // this.setState( {
-        //   moodSearch: {
-        //     name: response.item.name
-        //   }
-        // })
+      .then((data) => {
         console.log('Mood searched: ', data);
-        // $('playlist').append()
-      }, function(err) {
+        this.setState({
+          moodSearch: {
+            name: data.playlists.items[0].name,
+            albumArt: data.playlists.items[0].images[0].url
+          }
+        })
+      })
+      .catch((err) => {
         console.error(err);
-      });
+      })
   }
 
 //create a new function
-
   render() {
     return(
       <div className="App">
+      {/* TODO: this.state.user ? block of code below : buttononClick */}
         <a href='http://localhost:8888' > Login to Spotify </a>
     {/*    <div>
           Now Playing: { this.state.nowPlaying.name }
         </div>
         */}
         <div>
-          <img src={this.state.nowPlaying.albumArt} style={{ height: 150 }}/>
+          Mood search: { this.state.moodSearch.name }
+        </div>
+
+        <div>
+          <img src={this.state.moodSearch.albumArt} style={{ height: 150 }}/>
         </div>
         { this.state.loggedIn &&
           <button onClick={() => this.getMoodPlaylist(labelledMood)}>
