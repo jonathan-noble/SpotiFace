@@ -3,15 +3,7 @@ matrix:
     - language: python
       python: 3.6.5
       before_script:
-        - cd fer_model
+        - cd fer_model/config
       script:
-        - python emotion_detector.py --cascade haarcascade_frontalface_default.xml --model checkpoints/epoch_1.hdf5
+        - python emotion_config.py
 
-    - language: node_js
-      node_js:
-        - "iojs"
-        - "7"
-      before_script:
-        - cd spotify_webapp/client
-      script: 
-        - npm start
