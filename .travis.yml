@@ -1,0 +1,15 @@
+
+
+matrix:
+  include:
+    - language: python
+      python: 3.6.5
+      before_script:
+        - cd backend/tests
+      script:
+        - python -m unittest discover
+
+    - language: node_js
+        node_js:
+          - "node"
+        script: npm run travis
