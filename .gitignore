@@ -113,7 +113,7 @@ dmypy.json
 # Pyre type checker
 .pyre/
 
-fer2018/
+/fer_model/fer2013/
 
 .idea/
 
