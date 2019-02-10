@@ -2,7 +2,7 @@
 
 The whole application to create the model is coded in Python. 
 
-### Getting started
+## Getting started
 
 Run `python emotion_detector.py --cascade haarcascade_frontalface_default.xml --model checkpoints/epoch_1.hdf5` in the terminal.
 
