@@ -1,15 +1,17 @@
-
-
 matrix:
   include:
     - language: python
       python: 3.6.5
       before_script:
-        - cd backend/tests
+        - cd fer_model/tests
       script:
-        - python -m unittest discover
+        - python emotion_detector.py --cascade haarcascade_frontalface_default.xml --model checkpoints/epoch_1.hdf5
 
     - language: node_js
-        node_js:
-          - "node"
-        script: npm run travis
+      node_js:
+        - "iojs"
+        - "7"
+      before_script:
+        - cd spotify_webapp/client
+      script: 
+        - npm test
