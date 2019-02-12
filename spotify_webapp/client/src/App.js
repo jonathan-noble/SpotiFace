@@ -1,7 +1,6 @@
 import React, { Component } from 'react';
 import './App.css';
 
-/// <reference path="../node_modules/spotify-web-api-js/src/typings/spotify-web-api.d.ts" />
 
 import SpotifyWebApi from 'spotify-web-api-js';
 const spotifyApi = new SpotifyWebApi();
@@ -50,13 +49,10 @@ class App extends Component {
 
       this.state = {
         loggedIn: token ? true : false,
-        nowPlaying: { name: 'Not Checked', albumArt: '' },
-        moodSearch: { name: 'Not Found', albumArt: ''}
+        moodSearch: { name: 'Not Found', albumArt: ''},
+        player: { user_id: '', plist_id: '' }
       }
     }
-
-
-
 
   getHashParams() {
     var hashParams = {};
@@ -75,28 +71,34 @@ class App extends Component {
     spotifyApi.searchPlaylists(label_from_json + " Mood")
       .then((data) => {
         console.log('Mood searched: ', data);
+
+        let randNum = Math.floor((Math.random() * 20) + 0);
+
         this.setState({
           moodSearch: {
-            name: data.playlists.items[0].name,
-            albumArt: data.playlists.items[0].images[0].url
+            name: data.playlists.items[randNum].name,
+            albumArt: data.playlists.items[randNum].images[0].url,
+          },
+          player: {
+            user_id: data.playlists.items[randNum].owner.id,
+            plist_id: data.playlists.items[randNum].id
           }
-        })
+        });
+
       })
+
       .catch((err) => {
         console.error(err);
       })
   }
 
+
 //create a new function
   render() {
     return(
       <div className="App">
-      {/* TODO: this.state.user ? block of code below : buttononClick */}
+        {/* TODO: this.state.user ? block of code below : buttononClick */}
         <a href='http://localhost:8888' > Login to Spotify </a>
-    {/*    <div>
-          Now Playing: { this.state.nowPlaying.name }
-        </div>
-        */}
         <div>
           Mood search: { this.state.moodSearch.name }
         </div>
@@ -110,11 +112,18 @@ class App extends Component {
           </button>
         }
 
+        {/* TODO: use loader: show/hide for making the iframe pop up when button is pressed  */}
         <div>
-        { /* <iframe src={this.state.nowPlaying.name} height="400"/>  */}
+        <iframe src={"https://open.spotify.com/embed/user/" + this.state.player.user_id + "/playlist/" + this.state.player.plist_id} width="300" height="380" frameBorder="0" allowtransparency="false" allow="encrypted-media"></iframe>
         </div>
 
+        <div>
+        <form action={"spotify:user:" + this.state.player.user_id + ":playlist:" + this.state.player.plist_id}>
+        <input type="image" src="spotify.png" alt="Open Spotify" width="115" height="60"/>
+        </form>
         </div>
+
+      </div>
     );
   }
 
