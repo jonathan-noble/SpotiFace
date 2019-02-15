@@ -1,7 +1,5 @@
 import React, { Component } from 'react';
 import './App.css';
-
-
 import SpotifyWebApi from 'spotify-web-api-js';
 const spotifyApi = new SpotifyWebApi();
 
@@ -27,9 +25,7 @@ xhr.onreadystatechange = function()
 
 }
 
-
-let labelledMood = ""
-
+let labelledMood = "";
 loadJSON("label.json",
          function(data) {
            labelledMood = data
@@ -93,42 +89,47 @@ class App extends Component {
   }
 
 
-//create a new function
+//render the objects
   render() {
     return(
       <div className="App">
-        {/* TODO: this.state.user ? block of code below : buttononClick */}
-        <a href='http://localhost:8888' > Login to Spotify </a>
+        {this.state.loggedIn ?
         <div>
-          Mood search: { this.state.moodSearch.name }
-        </div>
+          <div>
+            Mood search: { this.state.moodSearch.name }
+          </div>
 
-        <div>
-          <img src={this.state.moodSearch.albumArt} style={{ height: 150 }}/>
-        </div>
-        { this.state.loggedIn &&
-          <button onClick={() => this.getMoodPlaylist(labelledMood)}>
-            Get Mood Playlist
-          </button>
+          <div>
+            <img src={this.state.moodSearch.albumArt} style={{ height: 150 }}/>
+          </div>
+
+          { this.state.loggedIn &&
+            <button onClick={() => this.getMoodPlaylist(labelledMood)}>
+              Get Mood Playlist
+            </button>
+          }
+
+          {/* TODO: use loader: show/hide for making the iframe pop up when button is pressed  */}
+
+          <div>
+          <iframe src={"https://open.spotify.com/embed/user/" + this.state.player.user_id + "/playlist/" + this.state.player.plist_id} width="300" height="380" frameBorder="0" allowtransparency="false" allow="encrypted-media"></iframe>
+          </div>
+
+          <div>
+          <form action={"spotify:user:" + this.state.player.user_id + ":playlist:" + this.state.player.plist_id}>
+          <input type="image" src="spotify.png" alt="Open Spotify" width="115" height="60"/>
+          </form>
+          </div>
+        </div>  : <button onClick={() => {
+            window.location = 'http://localhost:8888/login' }
+          }
+          style={{padding: '20px', 'font-size': '50px', 'margin-top': '20px'}}>Sign in with Spotify</button>
         }
-
-        {/* TODO: use loader: show/hide for making the iframe pop up when button is pressed  */}
-        <div>
-        <iframe src={"https://open.spotify.com/embed/user/" + this.state.player.user_id + "/playlist/" + this.state.player.plist_id} width="300" height="380" frameBorder="0" allowtransparency="false" allow="encrypted-media"></iframe>
-        </div>
-
-        <div>
-        <form action={"spotify:user:" + this.state.player.user_id + ":playlist:" + this.state.player.plist_id}>
-        <input type="image" src="spotify.png" alt="Open Spotify" width="115" height="60"/>
-        </form>
-        </div>
-
+            {/* TODO: use the proper URL for the second condition of an implemented ternary operator once established */}
       </div>
     );
   }
 
 }
-
-
 
 export default App;
