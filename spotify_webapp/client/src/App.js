@@ -1,7 +1,9 @@
 import React, { Component } from 'react';
-import './App.css';
+import styles from './App.css' 
 import SpotifyWebApi from 'spotify-web-api-js';
 const spotifyApi = new SpotifyWebApi();
+require('tracking')
+require('tracking/build/data/face')
 
 
 function loadJSON(path, success, error)
@@ -34,21 +36,69 @@ loadJSON("label.json",
 );
 
 
-class App extends Component {
-    constructor(){
-      super();
-      const params = this.getHashParams();
-      const token = params.access_token;
-      if (token) {
-        spotifyApi.setAccessToken(token);
-      }
+export default class App extends Component {  
+  
+  tracker = null
 
-      this.state = {
-        loggedIn: token ? true : false,
-        moodSearch: { name: 'Not Found', albumArt: ''},
-        player: { user_id: '', plist_id: '' }
-      }
+  constructor(){
+    super();
+    const params = this.getHashParams();
+    const token = params.access_token;
+    if (token) {
+      spotifyApi.setAccessToken(token);
     }
+
+    this.videoTag = React.createRef()
+
+    this.state = {
+      loggedIn: token ? true : false,
+      moodSearch: { name: 'Not Found', albumArt: ''},
+      player: { user_id: '', plist_id: '' }
+    }
+  }
+
+  componentDidMount() {
+  //   this.tracker = new window.tracking.ObjectTracker('face')
+  //   this.tracker.setInitialScale(4)
+  //   this.tracker.setStepSize(2)
+  //   this.tracker.setEdgesDensity(0.1)
+
+  //   window.tracking.track(this.refs.cameraOutput, this.tracker, { camera: true })
+  //   this.tracker.on('track', event => {
+  //     let context = this.refs.canvas.getContext('2d')
+  //     context.clearRect(0, 0, this.refs.canvas.width, this.refs.canvas.height)
+  //     event.data.forEach(function(rect) {
+  //       context.strokeStyle = '#a64ceb'
+  //       context.strokeRect(rect.x, rect.y, rect.width, rect.height)
+  //       context.font = '11px Helvetica'
+  //       context.fillStyle = "#fff"
+  //       context.fillText('x: ' + rect.x + 'px', rect.x + rect.width + 5, rect.y + 11)
+  //       context.fillText('y: ' + rect.y + 'px', rect.x + rect.width + 5, rect.y + 22)
+  //     })
+  //   })
+
+    navigator.mediaDevices
+            .getUserMedia({video: true})
+            .then(stream => this.videoTag.current.srcObject = stream)
+            .catch(console.log);
+  }
+
+  componentWillUnmount () {
+  //   this.tracker.removeAllListeners()
+  }
+
+
+  snapshot() {
+    let canvas, ctx;
+    canvas = document.getElementById("myCanvas");
+    ctx = canvas.getContext('2d');
+      // Draws current image from the video element into the canvas
+    let imgTaken = ctx.drawImage(this.refs.videoElement, 50, 50, canvas.width, canvas.height);
+    // .then(response => res.json(response))
+    console.log("Photo taken.")
+    return imgTaken;
+  }
+
 
   getHashParams() {
     var hashParams = {};
@@ -56,8 +106,8 @@ class App extends Component {
         q = window.location.hash.substring(1);
     e = r.exec(q)
     while (e) {
-       hashParams[e[1]] = decodeURIComponent(e[2]);
-       e = r.exec(q);
+      hashParams[e[1]] = decodeURIComponent(e[2]);
+      e = r.exec(q);
     }
     return hashParams;
   }
@@ -89,18 +139,40 @@ class App extends Component {
   }
 
 
+
 //render the objects
   render() {
     return(
       <div className="App">
         {this.state.loggedIn ?
         <div>
+
+        {/*
+          <div className="container" style={styles}>
+            <div className="cameraOutput" style={styles}>
+              <video ref="cameraOutput" width="320" height="240" preload="false" autoPlay="{true}"></video>
+              <canvas ref="canvas" width="320" height="240"></canvas>
+            </div>
+          </div>
+          <button onClick={ () => this.snapshot()}>Take Snapshot</button> 
+          
+        */}
+
+         <video id={this.id}
+                ref={this.videoTag}
+                width={this.width}
+                height={this.height}
+                autoPlay
+                title={this.title}>
+          </video>
+
           <div>
             Mood search: { this.state.moodSearch.name }
           </div>
 
+           {/* TODO: Allow the user to choose from set of playlist stored in a carousel*/}
           <div>
-            <img src={this.state.moodSearch.albumArt} style={{ height: 150 }}/>
+            <img src={this.state.moodSearch.albumArt} alt="Album Art" style={{ height: 150 }}/>
           </div>
 
           { this.state.loggedIn &&
@@ -112,7 +184,7 @@ class App extends Component {
           {/* TODO: use loader: show/hide for making the iframe pop up when button is pressed  */}
 
           <div>
-          <iframe src={"https://open.spotify.com/embed/user/" + this.state.player.user_id + "/playlist/" + this.state.player.plist_id} width="300" height="380" frameBorder="0" allowtransparency="false" allow="encrypted-media"></iframe>
+          <iframe title="Player" src={"https://open.spotify.com/embed/user/" + this.state.player.user_id + "/playlist/" + this.state.player.plist_id} width="300" height="380" frameBorder="0" allowtransparency="false" allow="encrypted-media"></iframe>
           </div>
 
           <div>
@@ -129,7 +201,4 @@ class App extends Component {
       </div>
     );
   }
-
 }
-
-export default App;
