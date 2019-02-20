@@ -7,6 +7,7 @@
     "react": "^16.1.0",
     "react-dom": "^16.1.0",
     "react-scripts": "1.0.17",
+    "react-webcam": "^1.1.0",
     "spotify-web-api-js": "^0.22.1",
     "tracking": "^1.1.3",
     "webpack-dev-server": ">=3.1.11"

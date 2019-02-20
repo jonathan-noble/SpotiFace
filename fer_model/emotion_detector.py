@@ -1,76 +1,46 @@
 # import the necessary packages
 from keras.preprocessing.image import img_to_array
 from keras.models import load_model
+import io
 import numpy as np
-import argparse
 import cv2
-import time
-import datetime
 import json
-
-# construct the argument parse and parse the arguments
-ap = argparse.ArgumentParser()
-ap.add_argument ("-m", "--model", required=True, help="path to pre-trained emotion detector CNN")
-ap.add_argument ("-v", "--video", help="path to the (optional) video file")
-args = vars (ap.parse_args ())
-
-# load the face detector cascade, emotion detection CNN, then define
-# the list of emotion labels
-detector = cv2.CascadeClassifier ("haarcascade_frontalface_default.xml")
-model = load_model (args["model"])
-EMOTIONS = ["angry", "scared", "happy", "sad", "surprised", "neutral"]
-
-# if a video path was not supplied, grab the reference to the webcam
-if not args.get ("video", False):
-    camera = cv2.VideoCapture (0)  # vc(1)
-
-# otherwise, load the video
-else:
-    camera = cv2.VideoCapture (args["video"])
-
-# timer for saving the label after 5 seconds
-now = datetime.datetime.now()
-start = time.time()
-PERIOD_OF_TIME = 5 # 5min
+import tensorflow as tf
+from flask import request
+from flask import jsonify
+from flask import Flask
+from PIL import Image
+import base64
 
 
-def extractLabel(labeldetected):
-    with open("..\spotify_webapp\client\public\label.json", "w") as write_file:
-        json.dump(labeldetected, write_file)
+app = Flask(__name__)
 
-    return print(labeldetected)
+def get_model():
+    global model
+    model = load_model ("./checkpoints/epoch_1.hdf5")
+    global graph
+    graph = tf.get_default_graph ()
+    print(" * MODEL LOADED ! ")
 
 
-# keep looping
-while True:
-    # grab the current frame
-    (grabbed, frame) = camera.read ()
-
-    # if we are viewing a video and we did not grab a
-    # frame, then we have reached the end of the video
-    if args.get ("video") and not grabbed:
-        break
-
+def preprocess(frame):
     # resize the frame and convert it to grayscale
-    frame = cv2.resize (frame, (0, 0), fx=1.0, fy=1.0)  # imutils.resize()
+    frame = cv2.resize (np.array(frame), (0, 0), fx=1.0, fy=1.0)  # imutils.resize()
     gray = cv2.cvtColor (frame, cv2.COLOR_BGR2GRAY)
 
-    # initialize the canvas for the visualization, then clone
-    # the frame so we can draw on it
-    canvas = np.zeros ((500, 450, 4), dtype="uint8")
-    frameClone = frame.copy ()
+    # load the face detector cascade, emotion detection CNN
+    detector = cv2.CascadeClassifier ("haarcascade_frontalface_default.xml")
 
-    # detect faces in the input frame, then clone the frame so that
-    # we can draw on it
+    # detect faces in the input frame
     rects = detector.detectMultiScale (gray, scaleFactor=1.1,
-                                       minNeighbors=5, minSize=(30, 30),
-                                       flags=cv2.CASCADE_SCALE_IMAGE)
+                                        minNeighbors=5, minSize=(30, 30),
+                                        flags=cv2.CASCADE_SCALE_IMAGE)
 
     # ensure at least one face was found before continuing
     if len (rects) > 0:
         # determine the largest face area
         rect = sorted (rects, reverse=True,
-                       key=lambda x: (x[2] - x[0]) * (x[3] - x[1]))[0]
+                        key=lambda x: (x[2] - x[0]) * (x[3] - x[1]))[0]
         (fX, fY, fW, fH) = rect
 
         # extract the face ROI from the image, then pre-process
@@ -80,60 +50,32 @@ while True:
         roi = roi.astype ("float") / 255.0
         roi = img_to_array (roi)
         roi = np.expand_dims (roi, axis=0)
+        return roi
 
-        # make a prediction on the ROI, then lookup the class label
-        preds = model.predict (roi)[0]
-        label = EMOTIONS[preds.argmax ()]
-
-
-        # loop over the labels + probabilities and draw them
-        for (i, (emotion, prob)) in enumerate(zip(EMOTIONS, preds)):
-            # construct the label text
-            text = "{}: {:.2f}%".format(emotion, prob * 100)
+print(" * LOADING KERAS MODEL . . .")
+get_model()
 
 
-            # draw the label on the frame
-            cv2.putText (frameClone, label, (fX, fY - 10),
-                         cv2.FONT_HERSHEY_SIMPLEX, 0.45, (0, 0, 255), 2)
-            cv2.rectangle (frameClone, (fX, fY), (fX + fW, fY + fH),
-                           (0, 0, 255), 2)
+@app.route("/predict", methods=["GET", "POST", "PATCH", "DELETE"])
+def predict():
+    message = request.get_json (force=True)
+    encoded = message['image']
+    decoded = base64.b64decode (encoded)
+    image = Image.open(io.BytesIO (decoded))
+    processed_image=preprocess(image)
 
-            # draw the label + probability bar on the canvas
-            w = int(prob * 300)
-            cv2.rectangle(canvas, (5, (i * 35) + 5),
-                         (w, (i * 35) + 35), (0, 0, 255), -1)
-            cv2.putText(canvas, text,
-                        (15, (i * 35) + 23),
-                        cv2.FONT_HERSHEY_SIMPLEX, 0.45,
-                        (255, 255, 255), 2)
+    with graph.as_default():
+     # make a prediction on the ROI, then lookup the class label
+        prediction = model.predict(processed_image).tolist()
 
-
-
-    # show our classifications + probabilities
-    cv2.imshow ("Face", frameClone)
-    cv2.imshow ("Probabilities", canvas)
-
-    # if the ’q’ key is pressed, stop the loop
-    if cv2.waitKey (1) & 0xFF == ord ("q"):
-        break
-
-
-if time.time () > start + PERIOD_OF_TIME:
-    extractLabel(label)
-    print("5 seconds are over") #TODO: Can be inside while loop; unsure whether which is better
-
-
-#Save the model
-# serialize model to JSON
-# model_json = model.to_json()
-# with open("model.json", "w") as json_file:
-#     json_file.write(model_json)
-# # serialize weights to HDF5
-# model.save_weights("model.h5")
-# print("Saved model to disk")
-
-
-# cleanup the camera and close any open windows
-camera.release ()
-cv2.destroyAllWindows ()
-
+    response = {
+        'prediction':{
+            'angry' :prediction[0][0],
+            'scared' :prediction[0][1],
+            'happy' :prediction[0][2],
+            'sad' :prediction[0][3],
+            'surprised' :prediction[0][4],
+            'neutral' :prediction[0][5]
+        }
+    }
+    return jsonify(response)

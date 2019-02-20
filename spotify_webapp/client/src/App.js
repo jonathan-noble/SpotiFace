@@ -1,5 +1,6 @@
 import React, { Component } from 'react';
-import styles from './App.css' 
+import styles from './App.css';
+import Webcam from 'react-webcam'; 
 import SpotifyWebApi from 'spotify-web-api-js';
 const spotifyApi = new SpotifyWebApi();
 require('tracking')
@@ -8,23 +9,22 @@ require('tracking/build/data/face')
 
 function loadJSON(path, success, error)
 {
-var xhr = new XMLHttpRequest();
-xhr.onreadystatechange = function()
-{
-    if (xhr.readyState === XMLHttpRequest.DONE) {
-        if (xhr.status === 200) {
-            if (success)
-                success(JSON.parse(xhr.responseText));
-        } else {
-            if (error)
-                error(xhr);
-        }
-    }
-};
+  var xhr = new XMLHttpRequest();
+  xhr.onreadystatechange = function()
+  {
+      if (xhr.readyState === XMLHttpRequest.DONE) {
+          if (xhr.status === 200) {
+              if (success)
+                  success(JSON.parse(xhr.responseText));
+          } else {
+              if (error)
+                  error(xhr);
+          }
+      }
+  };
 
   xhr.open("GET", path, true);
   xhr.send();
-
 }
 
 let labelledMood = "";
@@ -40,18 +40,19 @@ export default class App extends Component {
   
   tracker = null
 
-  constructor(){
-    super();
+  constructor(props){
+    super(props);
     const params = this.getHashParams();
     const token = params.access_token;
     if (token) {
       spotifyApi.setAccessToken(token);
     }
 
-    this.videoTag = React.createRef()
-
     this.state = {
       loggedIn: token ? true : false,
+      imageData: null,
+      saveImage: false,
+      tab: 0,
       moodSearch: { name: 'Not Found', albumArt: ''},
       player: { user_id: '', plist_id: '' }
     }
@@ -77,26 +78,37 @@ export default class App extends Component {
   //     })
   //   })
 
-    navigator.mediaDevices
-            .getUserMedia({video: true})
-            .then(stream => this.videoTag.current.srcObject = stream)
-            .catch(console.log);
   }
 
   componentWillUnmount () {
   //   this.tracker.removeAllListeners()
   }
 
+  captureShot = () => {
+    // let base64Image;
+    const screenshot = this.webcam.getScreenshot();
+    this.setState({ imageData: screenshot });
+    console.log(screenshot);
 
-  snapshot() {
-    let canvas, ctx;
-    canvas = document.getElementById("myCanvas");
-    ctx = canvas.getContext('2d');
-      // Draws current image from the video element into the canvas
-    let imgTaken = ctx.drawImage(this.refs.videoElement, 50, 50, canvas.width, canvas.height);
-    // .then(response => res.json(response))
-    console.log("Photo taken.")
-    return imgTaken;
+    // $('#selected-image').attr("src",screenshot);
+    // base64Image = screenshot.replace("data:image/jpeg;base64,","");
+    // console.log(base64Image); 
+
+
+  }
+
+  onClickRetake = (e) => {
+    e.persist();
+    this.setState({ imageData: null   });
+  }
+
+  onClickSave = (e) => {
+    e.preventDefault();
+    let imageObject = {
+      // job_id: this.props.job.id,
+      image_data: this.state.imageData
+    }
+    // this.props.saveJobImage(imageObject)
   }
 
 
@@ -142,6 +154,13 @@ export default class App extends Component {
 
 //render the objects
   render() {
+
+    const videoConstraints = {
+      width: 1280,
+      height: 720,
+      facingMode: "user"
+    };
+
     return(
       <div className="App">
         {this.state.loggedIn ?
@@ -156,15 +175,31 @@ export default class App extends Component {
           </div>
           <button onClick={ () => this.snapshot()}>Take Snapshot</button> 
           
-        */}
 
-         <video id={this.id}
-                ref={this.videoTag}
-                width={this.width}
-                height={this.height}
-                autoPlay
-                title={this.title}>
-          </video>
+        */}
+             <div>
+             <h1>react-webcam</h1>
+             <Webcam
+               audio={false}
+               ref={node => this.webcam = node}
+               screenshotFormat="image/jpeg"
+               width={350}
+               videoConstraints={videoConstraints}
+             />
+             <div>
+               <h2>Screenshots</h2>
+               <div className='screenshots'>
+                 <div className='controls'><button onClick={this.captureShot}>capture</button></div>
+                 {this.state.imageData ? 
+                  <div>
+                  <p><img src={this.state.imageData} alt=""/></p>
+                  <span><button onClick={this.onClickRetake}>Retake</button></span>
+                  <span><button onClick={this.onClickSave}>Save</button></span>
+                  </div>
+                  : null}
+               </div>
+             </div>
+           </div>
 
           <div>
             Mood search: { this.state.moodSearch.name }
