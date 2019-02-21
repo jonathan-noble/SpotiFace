@@ -2,6 +2,7 @@ import React, { Component } from 'react';
 import styles from './App.css';
 import Webcam from 'react-webcam'; 
 import SpotifyWebApi from 'spotify-web-api-js';
+import $ from 'jquery';
 const spotifyApi = new SpotifyWebApi();
 require('tracking')
 require('tracking/build/data/face')
@@ -51,8 +52,13 @@ export default class App extends Component {
     this.state = {
       loggedIn: token ? true : false,
       imageData: null,
-      saveImage: false,
       tab: 0,
+      angry: "",
+      scared: "",
+      happy: "",
+      sad: "",
+      surprised: "",
+      neutral: "",
       moodSearch: { name: 'Not Found', albumArt: ''},
       player: { user_id: '', plist_id: '' }
     }
@@ -78,6 +84,7 @@ export default class App extends Component {
   //     })
   //   })
 
+  
   }
 
   componentWillUnmount () {
@@ -88,29 +95,73 @@ export default class App extends Component {
     // let base64Image;
     const screenshot = this.webcam.getScreenshot();
     this.setState({ imageData: screenshot });
-    console.log(screenshot);
+    // console.log(screenshot);
 
-    // $('#selected-image').attr("src",screenshot);
-    // base64Image = screenshot.replace("data:image/jpeg;base64,","");
-    // console.log(base64Image); 
+    // var url = "url/action";                
+    // var blob = base64ToBlob(screenshot, 'image/jpeg');                
+    // var formData = new FormData();
+    // formData.append('picture', blob);
+    
+    // $.ajax({
+    //     url: url, 
+    //     type: "POST", 
+    //     cache: false,
+    //     contentType: false,
+    //     processData: false,
+    //     data: formData})
+    //     .done(function(e){
+    //         alert('done!');
+    //     });
 
-
+		// $("#predict-button").click(function(event){
+		// 	let message = {
+		// 		image: screenshot
+		// 	}
+		// 	console.log(message);
+		// 	$.post("http://127.0.0.1:5000/pyimagesearch/predict",JSON.stringify(message),function(response){
+		// 		$("#angry").text(response.prediction.angry.toFixed(6));
+		// 		$("#scared").text(response.prediction.scared.toFixed(6));
+		// 		$("#happy").text(response.prediction.happy.toFixed(6));
+		// 		$("#sad").text(response.prediction.sad.toFixed(6));
+		// 		$("#surprised").text(response.prediction.surprised.toFixed(6));
+		// 		$("#neutral").text(response.prediction.neutral.toFixed(6));
+		// 		console.log(response);
+		// 	});
+		// });
   }
+
+  // base64ToBlob(base64, mime) 
+  // {
+  //   mime = mime || '';
+  //   var sliceSize = 1024;
+  //   var byteChars = window.atob(base64);
+  //   var byteArrays = [];
+
+  //   for (var offset = 0, len = byteChars.length; offset < len; offset += sliceSize) {
+  //       var slice = byteChars.slice(offset, offset + sliceSize);
+
+  //       var byteNumbers = new Array(slice.length);
+  //       for (var i = 0; i < slice.length; i++) {
+  //           byteNumbers[i] = slice.charCodeAt(i);
+  //       }
+
+  //       var byteArray = new Uint8Array(byteNumbers);
+
+  //       byteArrays.push(byteArray);
+  //   }
+
+  //   return new Blob(byteArrays, {type: mime});
+  // }
+
 
   onClickRetake = (e) => {
     e.persist();
-    this.setState({ imageData: null   });
+    this.setState({ imageData: null });
   }
 
-  onClickSave = (e) => {
-    e.preventDefault();
-    let imageObject = {
-      // job_id: this.props.job.id,
-      image_data: this.state.imageData
-    }
-    // this.props.saveJobImage(imageObject)
-  }
+  
 
+  
 
   getHashParams() {
     var hashParams = {};
@@ -161,6 +212,7 @@ export default class App extends Component {
       facingMode: "user"
     };
 
+  
     return(
       <div className="App">
         {this.state.loggedIn ?
@@ -174,8 +226,6 @@ export default class App extends Component {
             </div>
           </div>
           <button onClick={ () => this.snapshot()}>Take Snapshot</button> 
-          
-
         */}
              <div>
              <h1>react-webcam</h1>
@@ -194,12 +244,22 @@ export default class App extends Component {
                   <div>
                   <p><img src={this.state.imageData} alt=""/></p>
                   <span><button onClick={this.onClickRetake}>Retake</button></span>
-                  <span><button onClick={this.onClickSave}>Save</button></span>
                   </div>
                   : null}
                </div>
              </div>
            </div>
+
+          {/*    
+           <button id="predict-button">Predict</button>
+           <p style="font-weight:bold">Predictions</p>
+           <p>angry: <span id="angry"></span></p>
+           <p>scared:   <span id="scared"></span></p>
+           <p>happy:   <span id="happy"></span></p>
+           <p>sad:    <span id="sad"></span></p>
+           <p>surprised:   <span id="surprised"></span></p>
+           <p>neutral:    <span id="neutral"></span></p>
+          */}
 
           <div>
             Mood search: { this.state.moodSearch.name }

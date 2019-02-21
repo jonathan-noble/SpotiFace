@@ -56,7 +56,7 @@ print(" * LOADING KERAS MODEL . . .")
 get_model()
 
 
-@app.route("/predict", methods=["GET", "POST", "PATCH", "DELETE"])
+@app.route("/pyimagesearch/predict", methods=["GET", "POST", "PATCH", "DELETE"])
 def predict():
     message = request.get_json (force=True)
     encoded = message['image']
