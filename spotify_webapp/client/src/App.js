@@ -49,7 +49,7 @@ export default class App extends Component {
       loggedIn: token ? true : false,
       imageData: null,
       tab: 0,
-      mood: { angry: 0, scared: 0, happy: 0, sad: 0, surprised: 0, neutral: 0 },
+      mood: { angry: null, scared: null, happy: null, sad: null, surprised: null, neutral: null },
       moodSearch: { name: 'Not Found', albumArt: ''},
       player: { user_id: '', plist_id: '' }
     }
@@ -70,7 +70,7 @@ export default class App extends Component {
       image: base64Image
     }
 
-    fetch('http://127.0.0.1:5000/predict', {
+   fetch('http://127.0.0.1:5000/', {
     method: 'post',
     headers: {
         Accept: "application/json",
@@ -78,21 +78,29 @@ export default class App extends Component {
         'Access-Control-Allow-Origin': '*'
     },
     body: JSON.stringify(message)
-    }).then(function (response) {
-      this.setState( {
-        mood: {
-          angry: (response.prediction.angry.toFixed(6)),
-          scared: (response.prediction.scared.toFixed(6)),
-          happy: (response.prediction.happy.toFixed(6)),
-          sad: (response.prediction.sad.toFixed(6)),
-          surprised: (response.prediction.surprised.toFixed(6)),
-          neutral: (response.prediction.neutral.toFixed(6)),
-        }
+    })
+  .then((response) => {
+    return response.json();  //response.json() is resolving its promise. It waits for the body to load
+  })
+  .then((data) => {
+    let percent = 100;
+    this.setState( {
+      mood: {
+        angry: (data.prediction.angry.toFixed(3) * percent),
+        scared: (data.prediction.scared.toFixed(3) * percent),
+        happy: (data.prediction.happy.toFixed(3)* percent),
+        sad: (data.prediction.sad.toFixed(3)* percent),
+        surprised: (data.prediction.surprised.toFixed(3)* percent),
+        neutral: (data.prediction.neutral.toFixed(3)* percent),
+      }
 
-      })
-      console.log(response);
-        // return response.json();  //response.json() is resolving its promise. It waits for the body to load
-    });
+    })
+  })
+  // .sort((data) => { 
+  //   let highest = (data.prediction.slice(0, 3));
+  //   console.log(highest);
+  // })
+   .catch(error => this.setState({ error,  mood: { angry: null, scared: null, happy: null, sad: null, surprised: null, neutral: null }, }));
   }
 
 
@@ -100,10 +108,7 @@ export default class App extends Component {
     e.persist();
     this.setState({ imageData: null });
   }
-
-  
-
-  
+ 
 
   getHashParams() {
     var hashParams = {};
@@ -199,11 +204,9 @@ export default class App extends Component {
            <p>scared:   {this.state.mood.scared} </p>
            <p>happy:    {this.state.mood.happy}</p>
            <p>sad:     {this.state.mood.sad}</p>
-           <p>surprised:  {this.state.mood.surprised}></p>
+           <p>surprised:  {this.state.mood.surprised}</p>
            <p>neutral:   {this.state.mood.neutral}</p>
-          
-
-          <p> My Token = {window.token} </p>
+        
 
           <div>
             Mood search: { this.state.moodSearch.name }

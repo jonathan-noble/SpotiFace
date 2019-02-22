@@ -1,5 +1,4 @@
 # import the necessary packages
-from __future__ import print_function 
 from keras.preprocessing.image import img_to_array
 from keras.models import load_model
 import io
@@ -16,9 +15,9 @@ import base64
 
 app = Flask(__name__)
 
-# @app.route("/")
-# def my_index():
-#     return flask.render_template("index.html", token="Hello Flask + React")
+@app.route("/")
+def my_index():
+    return flask.render_template("index.html")
 
 def get_model():
     global model
@@ -61,8 +60,7 @@ print(" * LOADING KERAS MODEL . . .")
 get_model()
 
 
-# TODO: Combine functions my_index() and predict() to return the two necessary items
-@app.route("/predict", methods=["GET", "POST", "PATCH", "DELETE"])
+@app.route("/", methods=["GET", "POST", "PATCH", "DELETE"])
 def predict():
     message = request.get_json(force=True)
     encoded = message['image']
