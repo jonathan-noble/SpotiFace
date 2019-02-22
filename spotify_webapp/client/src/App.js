@@ -1,11 +1,9 @@
 import React, { Component } from 'react';
+import ReactDOM from 'react-dom';
 import styles from './App.css';
 import Webcam from 'react-webcam'; 
 import SpotifyWebApi from 'spotify-web-api-js';
-import $ from 'jquery';
 const spotifyApi = new SpotifyWebApi();
-require('tracking')
-require('tracking/build/data/face')
 
 
 function loadJSON(path, success, error)
@@ -39,8 +37,6 @@ loadJSON("label.json",
 
 export default class App extends Component {  
   
-  tracker = null
-
   constructor(props){
     super(props);
     const params = this.getHashParams();
@@ -53,105 +49,51 @@ export default class App extends Component {
       loggedIn: token ? true : false,
       imageData: null,
       tab: 0,
-      angry: "",
-      scared: "",
-      happy: "",
-      sad: "",
-      surprised: "",
-      neutral: "",
+      mood: { angry: 0, scared: 0, happy: 0, sad: 0, surprised: 0, neutral: 0 },
       moodSearch: { name: 'Not Found', albumArt: ''},
       player: { user_id: '', plist_id: '' }
     }
   }
 
   componentDidMount() {
-  //   this.tracker = new window.tracking.ObjectTracker('face')
-  //   this.tracker.setInitialScale(4)
-  //   this.tracker.setStepSize(2)
-  //   this.tracker.setEdgesDensity(0.1)
-
-  //   window.tracking.track(this.refs.cameraOutput, this.tracker, { camera: true })
-  //   this.tracker.on('track', event => {
-  //     let context = this.refs.canvas.getContext('2d')
-  //     context.clearRect(0, 0, this.refs.canvas.width, this.refs.canvas.height)
-  //     event.data.forEach(function(rect) {
-  //       context.strokeStyle = '#a64ceb'
-  //       context.strokeRect(rect.x, rect.y, rect.width, rect.height)
-  //       context.font = '11px Helvetica'
-  //       context.fillStyle = "#fff"
-  //       context.fillText('x: ' + rect.x + 'px', rect.x + rect.width + 5, rect.y + 11)
-  //       context.fillText('y: ' + rect.y + 'px', rect.x + rect.width + 5, rect.y + 22)
-  //     })
-  //   })
-
   
   }
 
-  componentWillUnmount () {
-  //   this.tracker.removeAllListeners()
-  }
-
   captureShot = () => {
-    // let base64Image;
     const screenshot = this.webcam.getScreenshot();
-    this.setState({ imageData: screenshot });
-    // console.log(screenshot);
+    let base64Image = screenshot.replace("data:image/jpeg;base64,","");
+    this.setState({ 
+      imageData: screenshot,
+     });
 
-    // var url = "url/action";                
-    // var blob = base64ToBlob(screenshot, 'image/jpeg');                
-    // var formData = new FormData();
-    // formData.append('picture', blob);
-    
-    // $.ajax({
-    //     url: url, 
-    //     type: "POST", 
-    //     cache: false,
-    //     contentType: false,
-    //     processData: false,
-    //     data: formData})
-    //     .done(function(e){
-    //         alert('done!');
-    //     });
+    let message = {
+      image: base64Image
+    }
 
-		// $("#predict-button").click(function(event){
-		// 	let message = {
-		// 		image: screenshot
-		// 	}
-		// 	console.log(message);
-		// 	$.post("http://127.0.0.1:5000/pyimagesearch/predict",JSON.stringify(message),function(response){
-		// 		$("#angry").text(response.prediction.angry.toFixed(6));
-		// 		$("#scared").text(response.prediction.scared.toFixed(6));
-		// 		$("#happy").text(response.prediction.happy.toFixed(6));
-		// 		$("#sad").text(response.prediction.sad.toFixed(6));
-		// 		$("#surprised").text(response.prediction.surprised.toFixed(6));
-		// 		$("#neutral").text(response.prediction.neutral.toFixed(6));
-		// 		console.log(response);
-		// 	});
-		// });
+    fetch('http://127.0.0.1:5000/predict', {
+    method: 'post',
+    headers: {
+        Accept: "application/json",
+        "Content-Type": "application/json",
+        'Access-Control-Allow-Origin': '*'
+    },
+    body: JSON.stringify(message)
+    }).then(function (response) {
+      this.setState( {
+        mood: {
+          angry: (response.prediction.angry.toFixed(6)),
+          scared: (response.prediction.scared.toFixed(6)),
+          happy: (response.prediction.happy.toFixed(6)),
+          sad: (response.prediction.sad.toFixed(6)),
+          surprised: (response.prediction.surprised.toFixed(6)),
+          neutral: (response.prediction.neutral.toFixed(6)),
+        }
+
+      })
+      console.log(response);
+        // return response.json();  //response.json() is resolving its promise. It waits for the body to load
+    });
   }
-
-  // base64ToBlob(base64, mime) 
-  // {
-  //   mime = mime || '';
-  //   var sliceSize = 1024;
-  //   var byteChars = window.atob(base64);
-  //   var byteArrays = [];
-
-  //   for (var offset = 0, len = byteChars.length; offset < len; offset += sliceSize) {
-  //       var slice = byteChars.slice(offset, offset + sliceSize);
-
-  //       var byteNumbers = new Array(slice.length);
-  //       for (var i = 0; i < slice.length; i++) {
-  //           byteNumbers[i] = slice.charCodeAt(i);
-  //       }
-
-  //       var byteArray = new Uint8Array(byteNumbers);
-
-  //       byteArrays.push(byteArray);
-  //   }
-
-  //   return new Blob(byteArrays, {type: mime});
-  // }
 
 
   onClickRetake = (e) => {
@@ -176,6 +118,8 @@ export default class App extends Component {
   }
 
   getMoodPlaylist(label_from_json) {
+
+
     // search playlist that contains whichever mood is labelled
     spotifyApi.searchPlaylists(label_from_json + " Mood")
       .then((data) => {
@@ -250,16 +194,16 @@ export default class App extends Component {
              </div>
            </div>
 
-          {/*    
-           <button id="predict-button">Predict</button>
-           <p style="font-weight:bold">Predictions</p>
-           <p>angry: <span id="angry"></span></p>
-           <p>scared:   <span id="scared"></span></p>
-           <p>happy:   <span id="happy"></span></p>
-           <p>sad:    <span id="sad"></span></p>
-           <p>surprised:   <span id="surprised"></span></p>
-           <p>neutral:    <span id="neutral"></span></p>
-          */}
+{   /*       <p style="font-weight:bold">Predictions</p> */}
+           <p>angry: {this.state.mood.angry} </p>
+           <p>scared:   {this.state.mood.scared} </p>
+           <p>happy:    {this.state.mood.happy}</p>
+           <p>sad:     {this.state.mood.sad}</p>
+           <p>surprised:  {this.state.mood.surprised}></p>
+           <p>neutral:   {this.state.mood.neutral}</p>
+          
+
+          <p> My Token = {window.token} </p>
 
           <div>
             Mood search: { this.state.moodSearch.name }

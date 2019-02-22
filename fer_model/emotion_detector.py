@@ -1,19 +1,24 @@
 # import the necessary packages
+from __future__ import print_function 
 from keras.preprocessing.image import img_to_array
 from keras.models import load_model
 import io
+import sys
 import numpy as np
 import cv2
 import json
 import tensorflow as tf
-from flask import request
-from flask import jsonify
-from flask import Flask
+import flask
+from flask import request, jsonify, Flask
 from PIL import Image
 import base64
 
 
 app = Flask(__name__)
+
+# @app.route("/")
+# def my_index():
+#     return flask.render_template("index.html", token="Hello Flask + React")
 
 def get_model():
     global model
@@ -56,12 +61,13 @@ print(" * LOADING KERAS MODEL . . .")
 get_model()
 
 
-@app.route("/pyimagesearch/predict", methods=["GET", "POST", "PATCH", "DELETE"])
+# TODO: Combine functions my_index() and predict() to return the two necessary items
+@app.route("/predict", methods=["GET", "POST", "PATCH", "DELETE"])
 def predict():
-    message = request.get_json (force=True)
+    message = request.get_json(force=True)
     encoded = message['image']
-    decoded = base64.b64decode (encoded)
-    image = Image.open(io.BytesIO (decoded))
+    decoded = base64.b64decode(encoded)
+    image = Image.open(io.BytesIO(decoded))
     processed_image=preprocess(image)
 
     with graph.as_default():

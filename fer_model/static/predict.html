@@ -29,23 +29,22 @@
 				let dataURL = reader.result;
 				$('#selected-image').attr("src",dataURL);
 				base64Image = dataURL.replace("data:image/jpeg;base64,","");
-				console.log(base64Image);
+				console.log("dataURL:", dataURL);
+				console.log("base64:", base64Image);
 			}
 			reader.readAsDataURL($("#image-selector")[0].files[0]);
-			$("#angry").text("");
-			$("#scared").text("");
-			$("#happy").text("");
-			$("#sad").text("");
-			$("#surprised").text("");
-			$("#neutral").text("");
-
+			// $("#angry").text("");
+			// $("#scared").text("");
+			// $("#happy").text("");
+			// $("#sad").text("");
+			// $("#surprised").text("");
+			// $("#neutral").text("");
 		});
 
 		$("#predict-button").click(function(event){
 			let message = {
 				image: base64Image
 			}
-			console.log(message);
 			$.post("http://127.0.0.1:5000/predict",JSON.stringify(message),function(response){
 				$("#angry").text(response.prediction.angry.toFixed(6));
 				$("#scared").text(response.prediction.scared.toFixed(6));
