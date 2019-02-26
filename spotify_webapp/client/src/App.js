@@ -6,35 +6,6 @@ import SpotifyWebApi from 'spotify-web-api-js';
 const spotifyApi = new SpotifyWebApi();
 
 
-function loadJSON(path, success, error)
-{
-  var xhr = new XMLHttpRequest();
-  xhr.onreadystatechange = function()
-  {
-      if (xhr.readyState === XMLHttpRequest.DONE) {
-          if (xhr.status === 200) {
-              if (success)
-                  success(JSON.parse(xhr.responseText));
-          } else {
-              if (error)
-                  error(xhr);
-          }
-      }
-  };
-
-  xhr.open("GET", path, true);
-  xhr.send();
-}
-
-let labelledMood = "";
-loadJSON("label.json",
-         function(data) {
-           labelledMood = data
-           console.log("Labelled mood from JSON file: " + data); },
-         function(xhr) { console.error(xhr); }
-);
-
-
 export default class App extends Component {  
   
   constructor(props){
@@ -49,7 +20,7 @@ export default class App extends Component {
       loggedIn: token ? true : false,
       imageData: null,
       tab: 0,
-      mood: { angry: null, scared: null, happy: null, sad: null, surprised: null, neutral: null },
+      mood: { angry: null, scared: null, happy: null, sad: null, surprised: null, neutral: null},
       moodSearch: { name: 'Not Found', albumArt: ''},
       player: { user_id: '', plist_id: '' }
     }
@@ -65,7 +36,7 @@ export default class App extends Component {
     this.setState({ 
       imageData: screenshot,
      });
-
+    
     let message = {
       image: base64Image
     }
@@ -79,10 +50,11 @@ export default class App extends Component {
     },
     body: JSON.stringify(message)
     })
-  .then((response) => {
+   .then((response) => {
+    // console.log(response);
     return response.json();  //response.json() is resolving its promise. It waits for the body to load
-  })
-  .then((data) => {
+   })
+   .then((data) => {
     let percent = 100;
     this.setState( {
       mood: {
@@ -93,21 +65,59 @@ export default class App extends Component {
         surprised: (data.prediction.surprised.toFixed(3)* percent),
         neutral: (data.prediction.neutral.toFixed(3)* percent),
       }
+    })
+
+    const keys = Object.keys(data.prediction);
+    // projects data.prediction into an array of object key=prediction pairs
+    const arrayOfPredictions = keys.map(key => ({
+      id: key, 
+      predict: data.prediction[key]
+      })
+    );
+    console.log(arrayOfPredictions);
+    console.log(arrayOfPredictions[0].predict);
+
+    let highestPred = arrayOfPredictions.reduce(function(prev, curr) {
+      return prev.predict > curr.predict ? prev : curr;
+  });
+
+   let moodDetected = highestPred.id;
+
+   console.log(moodDetected); // function generateMood(highestPred.id) where it will return a randomized string from a set of "related mood" words 
+
+    let top3 = arrayOfPredictions
+      .sort((a, b) => {
+        return b.predict - a.predict;
+      }).slice(0,3);
+    console.log(top3);
+
+      // search playlist that contains whichever mood is labelled
+    spotifyApi.searchPlaylists(moodDetected + " Mood")
+    .then((data) => {
+      console.log('Mood searched: ', data);
+
+      let randNum = Math.floor((Math.random() * 20) + 0);
+
+      this.setState({
+        moodSearch: {
+          name: data.playlists.items[randNum].name,
+          albumArt: data.playlists.items[randNum].images[0].url,
+        },
+        player: {
+          user_id: data.playlists.items[randNum].owner.id,
+          plist_id: data.playlists.items[randNum].id
+        }
+      });
 
     })
-  })
-  // .sort((data) => { 
-  //   let highest = (data.prediction.slice(0, 3));
-  //   console.log(highest);
-  // })
-   .catch(error => this.setState({ error,  mood: { angry: null, scared: null, happy: null, sad: null, surprised: null, neutral: null }, }));
+    .catch((err) => {
+      console.error(err);
+    })
+
+   })
+   .catch(error => this.setState({ error,  mood: { angry: null, scared: null, happy: null, sad: null, surprised: null, neutral: null }, }))
   }
 
-
-  onClickRetake = (e) => {
-    e.persist();
-    this.setState({ imageData: null });
-  }
  
 
   getHashParams() {
@@ -121,35 +131,6 @@ export default class App extends Component {
     }
     return hashParams;
   }
-
-  getMoodPlaylist(label_from_json) {
-
-
-    // search playlist that contains whichever mood is labelled
-    spotifyApi.searchPlaylists(label_from_json + " Mood")
-      .then((data) => {
-        console.log('Mood searched: ', data);
-
-        let randNum = Math.floor((Math.random() * 20) + 0);
-
-        this.setState({
-          moodSearch: {
-            name: data.playlists.items[randNum].name,
-            albumArt: data.playlists.items[randNum].images[0].url,
-          },
-          player: {
-            user_id: data.playlists.items[randNum].owner.id,
-            plist_id: data.playlists.items[randNum].id
-          }
-        });
-
-      })
-
-      .catch((err) => {
-        console.error(err);
-      })
-  }
-
 
 
 //render the objects
@@ -167,17 +148,8 @@ export default class App extends Component {
         {this.state.loggedIn ?
         <div>
 
-        {/*
-          <div className="container" style={styles}>
-            <div className="cameraOutput" style={styles}>
-              <video ref="cameraOutput" width="320" height="240" preload="false" autoPlay="{true}"></video>
-              <canvas ref="canvas" width="320" height="240"></canvas>
-            </div>
-          </div>
-          <button onClick={ () => this.snapshot()}>Take Snapshot</button> 
-        */}
              <div>
-             <h1>react-webcam</h1>
+             <h1>SpotiFace</h1>
              <Webcam
                audio={false}
                ref={node => this.webcam = node}
@@ -188,13 +160,14 @@ export default class App extends Component {
              <div>
                <h2>Screenshots</h2>
                <div className='screenshots'>
-                 <div className='controls'><button onClick={this.captureShot}>capture</button></div>
-                 {this.state.imageData ? 
+                 <div className='controls'><button onClick={this.captureShot}>capture</button></div>   
+                <div>
+                {this.state.imageData ? 
                   <div>
                   <p><img src={this.state.imageData} alt=""/></p>
-                  <span><button onClick={this.onClickRetake}>Retake</button></span>
                   </div>
                   : null}
+                 </div>
                </div>
              </div>
            </div>
@@ -205,28 +178,23 @@ export default class App extends Component {
            <p>happy:    {this.state.mood.happy}</p>
            <p>sad:     {this.state.mood.sad}</p>
            <p>surprised:  {this.state.mood.surprised}</p>
-           <p>neutral:   {this.state.mood.neutral}</p>
-        
+           <p>neutral:   {this.state.mood.neutral}</p>  
 
           <div>
             Mood search: { this.state.moodSearch.name }
           </div>
+
 
            {/* TODO: Allow the user to choose from set of playlist stored in a carousel*/}
           <div>
             <img src={this.state.moodSearch.albumArt} alt="Album Art" style={{ height: 150 }}/>
           </div>
 
-          { this.state.loggedIn &&
-            <button onClick={() => this.getMoodPlaylist(labelledMood)}>
-              Get Mood Playlist
-            </button>
-          }
 
           {/* TODO: use loader: show/hide for making the iframe pop up when button is pressed  */}
 
           <div>
-          <iframe title="Player" src={"https://open.spotify.com/embed/user/" + this.state.player.user_id + "/playlist/" + this.state.player.plist_id} width="300" height="380" frameBorder="0" allowtransparency="false" allow="encrypted-media"></iframe>
+          <iframe title="Player" src={"https://open.spotify.com/embed/user/" + this.state.player.user_id + "/playlist/" + this.state.player.plist_id} width="300" height="380" frameBorder="0" allowtransparency="false" ></iframe>  {/* allow="encrypted-media" not allowing full preview */}
           </div>
 
           <div>

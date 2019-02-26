@@ -8,7 +8,7 @@ import cv2
 import json
 import tensorflow as tf
 import flask
-from flask import request, jsonify, Flask
+from flask import request, jsonify, Flask, url_for
 from PIL import Image
 import base64
 
@@ -17,7 +17,8 @@ app = Flask(__name__)
 
 @app.route("/")
 def my_index():
-    return flask.render_template("index.html")
+    # spotify_btn = url_for('static', filename='spotify.png')
+    return flask.render_template("index.html") # image_url=spotify_btn
 
 def get_model():
     global model
