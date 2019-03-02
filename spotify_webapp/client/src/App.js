@@ -67,32 +67,33 @@ export default class App extends Component {
       }
     })
 
-    const keys = Object.keys(data.prediction);
+   const keys = Object.keys(data.prediction);
     // projects data.prediction into an array of object key=prediction pairs
-    const arrayOfPredictions = keys.map(key => ({
+   const arrayOfPredictions = keys.map(key => ({
       id: key, 
       predict: data.prediction[key]
       })
     );
-    console.log(arrayOfPredictions);
-    console.log(arrayOfPredictions[0].predict);
+   console.log(arrayOfPredictions);
+   console.log(arrayOfPredictions[0].predict);
 
-    let highestPred = arrayOfPredictions.reduce(function(prev, curr) {
-      return prev.predict > curr.predict ? prev : curr;
+   let highestPred = arrayOfPredictions.reduce(function(prev, curr) {
+     return prev.predict > curr.predict ? prev : curr;
   });
 
-   let moodDetected = highestPred.id;
+   let moodDetected = this.generateMood(highestPred.id); // function where it will return a randomized string from a set of "related" and or "associated" mood words 
 
-   console.log(moodDetected); // function generateMood(highestPred.id) where it will return a randomized string from a set of "related mood" words 
+   console.log(highestPred.id); 
+   console.log(moodDetected); 
 
-    let top3 = arrayOfPredictions
+   let top3 = arrayOfPredictions
       .sort((a, b) => {
         return b.predict - a.predict;
       }).slice(0,3);
     console.log(top3);
 
-      // search playlist that contains whichever mood is labelled
-    spotifyApi.searchPlaylists(moodDetected + " Mood")
+    // search playlist that contains whichever mood is labelled
+    spotifyApi.searchPlaylists(moodDetected) // remove "Mood" once function generateMood is done
     .then((data) => {
       console.log('Mood searched: ', data);
 
@@ -116,6 +117,31 @@ export default class App extends Component {
 
    })
    .catch(error => this.setState({ error,  mood: { angry: null, scared: null, happy: null, sad: null, surprised: null, neutral: null }, }))
+  }
+
+  generateMood(moodGen) {
+    const happyList =  ['happy mood', 'celebrate', 'dance', 'energy', 'boost', 'reggae'];
+    const neutralList =  ['neutral mood', 'chill', 'acoustic', 'relaxed', 'nature', 'couch'];
+    const surprisedList =  ['surprised mood', 'shocked', 'wow', 'amazing', 'techno', 'damn'];
+
+    switch(moodGen) {
+      case 'happy':
+        let happyVal = Math.floor(Math.random()*happyList.length);
+        return happyList[happyVal];
+        break;
+      case 'neutral':
+        let neutralVal = Math.floor(Math.random()*neutralList.length);
+        return neutralList[neutralVal];
+        break;
+      case 'surprised':
+      let surprisedVal = Math.floor(Math.random()*surprisedList.length);
+      return surprisedList[surprisedVal];
+      break;
+      default:
+        return "Mood"
+    }
+
+
   }
 
  

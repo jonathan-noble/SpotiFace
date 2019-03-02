@@ -13,7 +13,7 @@ from PIL import Image
 import base64
 
 
-app = Flask(__name__)
+app = Flask(__name__, static_folder="./static/react", template_folder="./static")
 
 @app.route("/")
 def my_index():
