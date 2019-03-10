@@ -3,11 +3,11 @@ import matplotlib
 matplotlib.use("Agg")
 
 # import the necessary packages
-from fer_model.config import emotion_config as config
-from fer_model.pyimagesearch.preprocessing import imagetoarraypreprocessor
-from fer_model.pyimagesearch.callbacks import trainingmonitor, epochcheckpoint
-from fer_model.pyimagesearch.io import hdf5datasetgenerator
-from fer_model.pyimagesearch.nn.conv import emotionvggnet
+from config import emotion_config as config
+from pyimagesearch.preprocessing import imagetoarraypreprocessor
+from pyimagesearch.callbacks import trainingmonitor, epochcheckpoint
+from pyimagesearch.io import hdf5datasetgenerator
+from pyimagesearch.nn.conv import emotionvggnet
 from keras.preprocessing.image import ImageDataGenerator
 from keras.optimizers import Adam
 from keras.models import load_model

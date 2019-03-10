@@ -13,7 +13,7 @@ from PIL import Image
 import base64
 
 
-app = Flask(__name__, static_folder="./static/react", template_folder="./static")
+app = Flask(__name__) #, static_folder="./static/react", template_folder="./static")
 
 @app.route("/")
 def my_index():
@@ -22,7 +22,7 @@ def my_index():
 
 def get_model():
     global model
-    model = load_model ("./checkpoints/epoch_1.hdf5")
+    model = load_model ("./checkpoints/epoch_30.hdf5")
     global graph
     graph = tf.get_default_graph ()
     print(" * MODEL LOADED ! ")

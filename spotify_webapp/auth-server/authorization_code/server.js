@@ -42,14 +42,17 @@ app.get('/login', function(req, res) {
   res.cookie(stateKey, state);
 
   // your application requests authorization
-  let scope = 'user-read-private user-read-email user-read-playback-state playlist-read-private';
+  let scope = 
+  'user-read-private user-read-email user-read-birthdate user-read-playback-state user-modify-playback-state playlist-read-private playlist-modify-public playlist-modify-private streaming';
+  
   res.redirect('https://accounts.spotify.com/authorize?' +
     querystring.stringify({
       response_type: 'code',
       client_id: client_id,
       scope: scope,
       redirect_uri: redirect_uri,
-      state: state
+      state: state,
+      show_dialog: true
     }));
 });
 
@@ -100,7 +103,7 @@ app.get('/callback', function(req, res) {
         });
 
         // we can also pass the token to the browser to make requests from there
-        res.redirect('http://127.0.0.1:5000/#' +
+        res.redirect('http://127.0.0.1:3000/#' +
           querystring.stringify({
             access_token: access_token,
             refresh_token: refresh_token

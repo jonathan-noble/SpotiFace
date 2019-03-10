@@ -1,13 +1,19 @@
 import React, { Component } from 'react';
-import ReactDOM from 'react-dom';
-import styles from './App.css';
+import './App.css';
+import { Container, Row, Col,
+   Navbar, NavbarBrand, 
+   Button, 
+   } from 'reactstrap';
 import Webcam from 'react-webcam'; 
+import "react-responsive-carousel/lib/styles/carousel.min.css";
+import { Carousel } from 'react-responsive-carousel';
 import SpotifyWebApi from 'spotify-web-api-js';
 const spotifyApi = new SpotifyWebApi();
 
 
+
 export default class App extends Component {  
-  
+
   constructor(props){
     super(props);
     const params = this.getHashParams();
@@ -15,32 +21,39 @@ export default class App extends Component {
     if (token) {
       spotifyApi.setAccessToken(token);
     }
+    
 
     this.state = {
       loggedIn: token ? true : false,
       imageData: null,
-      tab: 0,
       mood: { angry: null, scared: null, happy: null, sad: null, surprised: null, neutral: null},
-      moodSearch: { name: 'Not Found', albumArt: ''},
-      player: { user_id: '', plist_id: '' }
+      spotify_data: null,
+      top3: [],
+      carouselItem1: { name: 'Not Found', albumArt: ''},
+      carouselItem2: { name: 'Not Found', albumArt: ''},
+      carouselItem3: { name: 'Not Found', albumArt: ''},
+      player: { user_id: '', plist_id: '' },
     }
   }
 
-  componentDidMount() {
-  
-  }
-
-  captureShot = () => {
-    const screenshot = this.webcam.getScreenshot();
-    let base64Image = screenshot.replace("data:image/jpeg;base64,","");
-    this.setState({ 
-      imageData: screenshot,
-     });
-    
-    let message = {
-      image: base64Image
+    componentDidMount() {
+      
     }
 
+
+
+    captureShot = () => {
+      const screenshot = this.webcam.getScreenshot();
+      let base64Image = screenshot.replace("data:image/jpeg;base64,","");
+      this.setState({ 
+        imageData: screenshot,
+       });
+      
+      let message = {
+        image: base64Image
+      }
+
+      
    fetch('http://127.0.0.1:5000/', {
     method: 'post',
     headers: {
@@ -86,12 +99,20 @@ export default class App extends Component {
    console.log(highestPred.id); 
    console.log(moodDetected); 
 
-   let top3 = arrayOfPredictions
+
+   let top3_pred = arrayOfPredictions
       .sort((a, b) => {
         return b.predict - a.predict;
       }).slice(0,3);
-    console.log(top3);
+    console.log(top3_pred);
 
+    this.setState( {
+      top3: [...top3_pred]
+    })
+
+  
+          // search playlist that contains whichever mood is labelled
+    // spotifyApi.search(label_from_json, ["playlist", "album", "track"])
     // search playlist that contains whichever mood is labelled
     spotifyApi.searchPlaylists(moodDetected) // remove "Mood" once function generateMood is done
     .then((data) => {
@@ -113,11 +134,11 @@ export default class App extends Component {
     })
     .catch((err) => {
       console.error(err);
-    })
-
+      })
    })
-   .catch(error => this.setState({ error,  mood: { angry: null, scared: null, happy: null, sad: null, surprised: null, neutral: null }, }))
-  }
+    .catch(error => this.setState({ error,  mood: { angry: null, scared: null, happy: null, sad: null, surprised: null, neutral: null }, }))
+    }
+    
 
   generateMood(moodGen) {
     const happyList =  ['happy mood', 'celebrate', 'dance', 'energy', 'boost', 'reggae'];
@@ -140,11 +161,30 @@ export default class App extends Component {
       default:
         return "Mood"
     }
-
-
   }
 
- 
+  choosePlaylist(carouselItem, _randNum) {
+    this.setState( {
+        player: {
+            user_id: carouselItem.playlists.items[_randNum].owner.id,
+            plist_id: carouselItem.playlists.items[_randNum].id
+        }
+      })
+    }
+    
+    updatePlaylist(carouselItem1, randumz) {
+      console.log("Updated playlist data: ", carouselItem1);
+    }
+
+    
+  followPlaylist(playlist_id) {
+    console.log(playlist_id);
+    spotifyApi.followPlaylist(playlist_id)
+    .catch(e => {
+      console.log(e);
+    });
+  }
+
 
   getHashParams() {
     var hashParams = {};
@@ -159,82 +199,179 @@ export default class App extends Component {
   }
 
 
+  
 //render the objects
   render() {
-
     const videoConstraints = {
       width: 1280,
       height: 720,
       facingMode: "user"
     };
 
-  
+    const {
+      loggedIn,
+      imageData,
+      mood,
+      spotify_data,
+      carouselItem1,
+      carouselItem2,
+      carouselItem3,
+      player,
+    } = this.state;
+
     return(
-      <div className="App">
-        {this.state.loggedIn ?
+      <div className="App" >
+        {loggedIn ?
         <div>
+          <Navbar color="dark" light expand="md">
+          <NavbarBrand>SpotiFace</NavbarBrand>
 
-             <div>
-             <h1>SpotiFace</h1>
-             <Webcam
-               audio={false}
-               ref={node => this.webcam = node}
-               screenshotFormat="image/jpeg"
-               width={350}
-               videoConstraints={videoConstraints}
-             />
-             <div>
-               <h2>Screenshots</h2>
-               <div className='screenshots'>
-                 <div className='controls'><button onClick={this.captureShot}>capture</button></div>   
-                <div>
-                {this.state.imageData ? 
+          {/*  <Button href='http://localhost:8888' className="btn btn-secondary btn-lg">Log Out
+              <i className="fa fa-dribbble"></i></Button>*/}
+          </Navbar>
+
+            
+
+
+          <section id="main1"> 
+          <Container fluid>
+          <Row className="row">
+            <Col xl="7" className="margin-150">
+                <Webcam
+                audio={false}
+                ref={node => this.webcam = node}
+                screenshotFormat="image/jpeg"
+                width={1000}
+                height={500}
+                videoConstraints={videoConstraints}
+                />
+            </Col>
+          
+            <Col xl="3" className="pull-right text-right margin-150">
+                <h1>Take a photo!</h1>
+                <h3>Let me recommend a playlist<strong><em> for you!</em></strong></h3>
+                <a onClick={this.captureShot} href="#main2" className="btn btn-primary btn-lg">Take a photo<i className="fa fa-cloud-download"></i></a>
+
+            </Col>
+          </Row>
+          </Container>
+          </section>
+
+
+          <section id="main2">
+          <Container fluid>
+          <Row className="row">
+            <Col sm="3" className="pull-left text-left margin-100">
+   { /*  
+                <div>{mood.map((item) => (<div>{item.desc + ' ' + item.expense}</div>))}</div>    */ } 
+                <p>angry: {mood.angry} </p>
+                <p>scared:   {mood.scared} </p>
+                <p>happy:    {mood.happy}</p>
+                <p>sad:     {mood.sad}</p>
+                <p>surprised:  {mood.surprised}</p>
+                <p>neutral:   {mood.neutral}</p>  
+                <h2> Your current mood is: </h2> <br/>
+                             
+               <a href="#main1" className="btn btn-secondary btn-lg">One more time?<i className="fa fa-envelope"></i></a>  
+            </Col>
+          
+            <Col xl="7" className="margin-150_lesstop">
+              {imageData ? 
+                <p><img className="main2-img img-responsive pull-right" src={imageData} alt="Snapshot"/></p>
+                : null}
+            </Col>
+              
+          </Row>
+          </Container>
+          </section>
+
+          <section id="main3">
+          <Container fluid>
+          <Row className="row">
+            <Col sm="7" className="wow fadeInUpBig margin-100">
+                {/*
+                    <div>
+                  <form action={"spotify:user:" + player.user_id + ":playlist:" + player.plist_id}>
+                  <input type="image" src="spotify.png" alt="Open Spotify" width="115" height="60"/>
+                  </form>
+                </div>
+                */}
+
                   <div>
-                  <p><img src={this.state.imageData} alt=""/></p>
+                  <iframe src={"https://open.spotify.com/embed/user/" + player.user_id + "/playlist/" + player.plist_id}
+                    width="600" height="1000" frameBorder="1" allowtransparency="true" allow="encrypted-media"></iframe>
                   </div>
-                  : null}
-                 </div>
-               </div>
-             </div>
-           </div>
+                  {/*}
+                  <iframe src="https://open.spotify.com/embed/track/2xxMCCFva1GRQAYl2rlrpM" 
+                  width="300" height="380" frameborder="0" allowtransparency="true" allow="encrypted-media"></iframe>
+                */}
+            </Col>
+          
+            <Col xl="3" className="pull-right text-right margin-20">
 
-{   /*       <p style="font-weight:bold">Predictions</p> */}
-           <p>angry: {this.state.mood.angry} </p>
-           <p>scared:   {this.state.mood.scared} </p>
-           <p>happy:    {this.state.mood.happy}</p>
-           <p>sad:     {this.state.mood.sad}</p>
-           <p>surprised:  {this.state.mood.surprised}</p>
-           <p>neutral:   {this.state.mood.neutral}</p>  
+               {/* { loggedIn &&
+                  <Button onClick={() => this.getMoodPlaylist(labelledMood)}>
+                    Get Mood Playlist
+                  </Button>
+                }  */} 
+                <br />
 
-          <div>
-            Mood search: { this.state.moodSearch.name }
-          </div>
+              <Button onClick={() => this.followPlaylist(player.plist_id)}>
+                Follow Playlist
+              </Button>
+
+                <Carousel
+                   autoPlay 
+                   showThumbs={false}
+                   useKeyboardArrows
+                   infiniteLoop
+                   emulateTouch
+                   centerMode
+                   onClickItem={this.updatePlaylist(spotify_data, 1)}
+                   >
+                 {/* onClickItem={this.choosePlaylist(carouselItem1, 1)} */}
+                <div>
+                   <img src={carouselItem1.albumArt}  alt="Album Art"/>
+                    <p className="legend"> {carouselItem1.name}</p>
+                </div>
+                <div>
+                  <img src={carouselItem2.albumArt} alt="Album Art"/>
+                    <p className="legend">{carouselItem2.name}</p>
+                </div>
+                <div>
+                  <img src={carouselItem3.albumArt} alt="Album Art"/>
+                    <p className="legend">{carouselItem3.name}</p>
+                </div>
+                <div>
+                  <img src={carouselItem1.albumArt} alt="Album Art"/>
+                  <p className="legend">Legend 4</p>
+                </div>
+                <div>  
+                  <img src={carouselItem2.albumArt} alt="Album Art"/>
+                  <p className="legend">Legend 5</p>
+                </div>
+
+               </Carousel>
+           
+            </Col>
+              
+          </Row>
+          </Container>
+          </section>
 
 
-           {/* TODO: Allow the user to choose from set of playlist stored in a carousel*/}
-          <div>
-            <img src={this.state.moodSearch.albumArt} alt="Album Art" style={{ height: 150 }}/>
-          </div>
+        </div>  :          
+          <html>
+          <body>
+          <Button onClick={() => { window.location = 'http://localhost:8888' }} 
+          style={{ position: "sticky", padding: '25px', 'font-size': '50px', 'margin-left': '40%'}}>Sign in with Spotify</Button>
+          {/* TODO: use the proper URL for the second condition of an implemented ternary operator once established */}
+          </body>
 
-
-          {/* TODO: use loader: show/hide for making the iframe pop up when button is pressed  */}
-
-          <div>
-          <iframe title="Player" src={"https://open.spotify.com/embed/user/" + this.state.player.user_id + "/playlist/" + this.state.player.plist_id} width="300" height="380" frameBorder="0" allowtransparency="false" ></iframe>  {/* allow="encrypted-media" not allowing full preview */}
-          </div>
-
-          <div>
-          <form action={"spotify:user:" + this.state.player.user_id + ":playlist:" + this.state.player.plist_id}>
-          <input type="image" src="spotify.png" alt="Open Spotify" width="115" height="60"/>
-          </form>
-          </div>
-        </div>  : <button onClick={() => {
-            window.location = 'http://localhost:8888/login' }
-          }
-          style={{padding: '20px', 'font-size': '50px', 'margin-top': '20px'}}>Sign in with Spotify</button>
-        }
-            {/* TODO: use the proper URL for the second condition of an implemented ternary operator once established */}
+          </html>
+        }          
       </div>
+      
     );
   }
 }

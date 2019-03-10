@@ -1,99 +1,291 @@
 
-.App {
-  text-align: center;
+html, body {
+  color:  #ffffff;
+  background: -webkit-gradient(linear, left bottom, left top, from(#ff6a00), to(#c00c39a7));
+  background: linear-gradient(0deg, #ff6a00 0%, #c00c39a7 100%);
 }
 
-.App-logo {
-  animation: App-logo-spin infinite 20s linear;
-  height: 80px;
+
+body {
+font-family: "Helvetica Neue", Helvetica, sans-serif;
+font-weight: 200;
+margin: 0 auto 50px;
 }
 
-.App-header {
-  background-color: #222;
-  height: 150px;
-  padding: 20px;
-  color: white;
+h1 {
+text-align: center;
+font-family: 'Dr Sugiyama', cursive;
+font-size: 62px;
+color: #ffffff;
 }
 
-.App-title {
-  font-size: 1.5em;
+h2, h3, p, .navbar-nav {
+font-family: 'Lato', sans-serif;
+} 
+
+h2 {
+font-size: 42px;
+font-weight: 300;
+color: #545454;
 }
 
-.App-intro {
-  font-size: large;
+h3 {
+font-size: 30px;
+font-weight: 300;
+color: #ffffff;
 }
 
-@keyframes App-logo-spin {
-  from { transform: rotate(0deg); }
-  to { transform: rotate(360deg); }
+p {
+color: #7e7e7e;
+font-size: 25px;
 }
+
+/*-------------------Margins----------------*/
+.margin-0 {
+margin-bottom: 0 !important;
+}
+.margin-10 {
+margin-bottom: 10px !important;
+}
+.margin-15 {
+margin-bottom: 15px !important;
+}
+.margin-20 {
+margin-bottom: 20px !important;
+}
+.margin-30 {
+margin-bottom: 30px !important;
+}
+.margin-40 {
+margin-bottom: 40px !important;
+}
+.margin-50 {
+margin-bottom: 50px !important;
+}
+.margin-60 {
+margin-bottom: 60px !important;
+}
+.margin-70 {
+margin-bottom: 70px !important;
+}
+.margin-80 {
+margin-bottom: 80px !important;
+}
+.margin-90 {
+margin-bottom: 90px !important;
+}
+.margin-100 {
+margin-top: 50px !important;
+margin-bottom: 100px !important;
+margin-left: 100px !important;
+}
+
+.margin-125 {
+margin-bottom: 125px !important;
+}
+
+.margin-150 {
+margin-top: 150px !important;
+margin-bottom: 150px !important;
+}
+
+.margin-150_lesstop {
+margin-top: 50px !important;
+margin-left: 130px !important;
+margin-bottom: 150px !important;
+}
+
+/*-------------------Buttons----------------*/
+.btn {
+-moz-user-select: none;
+background-image: none;
+border: 1px solid rgba(0, 0, 0, 0);
+border-radius: 2px;
+cursor: pointer;
+display: inline-block;
+font-size: 14px;
+font-weight: 400;
+line-height: 1.42857;
+margin-bottom: 0;
+padding: 6px 12px;
+text-align: center;
+vertical-align: middle;
+white-space: nowrap;
+}
+
+.btn-lg {
+border-radius: 2px;
+font-size: 18px;
+line-height: 1.33;
+padding: 14px 22px;
+}
+
+.btn-primary {
+background-color: transparent;
+border-color: #FFFFFF;
+color: #FFFFFF;
+}
+
+.btn-primary:hover, .btn-primary:focus, .btn-primary:active, .btn-primary.active, .open .dropdown-toggle.btn-primary {
+background-color: #ffffff;
+border-color: #FFFFFF;
+color: #545454;
+
+-webkit-transition: all 0.35s ease-in-out;
+-moz-transition: all 0.35s ease-in-out;
+-o-transition: all 0.35s ease-in-out;
+transition: all 0.35s ease-in-out;
+}
+
+.btn-secondary {
+background-color: transparent;
+border-color: #4eacdd;
+color: #4eacdd;
+}
+
+.btn-secondary:hover, .btn-secondary:focus, .btn-secondary:active, .btn-secondary.active, .open .dropdown-toggle.btn-secondary {
+background-color: #4eacdd;
+border-color: #4eacdd;
+color: #ffffff;
+
+-webkit-transition: all 0.35s ease-in-out;
+-moz-transition: all 0.35s ease-in-out;
+-o-transition: all 0.35s ease-in-out;
+transition: all 0.35s ease-in-out;
+}
+
+/*-------------------Colors----------------*/
+.dark-gray {
+color: #545454;
+}
+
+.light-gray {
+color: #f4f4f4;
+}
+
+.white {
+color: #ffffff;
+}
+
+.green {
+color: #13c4af;
+}
+
+.blue {
+color: #4eacdd;
+}
+
+
+
+/* ==========================================================================
+ Navigation styles
+ ========================================================================== */
+ .navbar-inverse {
+  background-color: #4eabde;
+  border-color: rgba(0, 0, 0, 0);
+}
+
+.navbar-brand {
+  padding: 0px;
+}
+
+.navbar {
+margin-bottom: 0px;
+}
+
+.navbar-inverse .navbar-nav > li > a {
+  color: #ffffff;
+  font-weight: 400;
+  text-transform: uppercase;
+}
+
+.navbar-inverse .navbar-toggle {
+  border-color: rgba(0, 0, 0, 0);
+}
+
+.navbar-inverse .navbar-toggle:hover, .navbar-inverse .navbar-toggle:focus {
+  background-color: rgba(0, 0, 0, 0);
+}
+
+.navbar-inverse .navbar-collapse, .navbar-inverse .navbar-form {
+  border-color: rgba(0, 0, 0, 0);
+  border: 0px;
+  box-shadow: 0 0px 0 rgba(0, 0, 0, 0.0) inset;
+}
+
+
 
 
 div, button {
-  margin: 10px;
+margin: 10px;
 }
 
-.container {
-    margin: 0px auto;
-    width: 500px;
-    height: 375px;
-    border: 10px #333 solid;
+
+Col {
+border-style: outset;
+border-color: gray;
+border-width: 2px;
 }
+
+
+/* ==========================================================================
+ Main styles
+ ========================================================================== */
+
 
 .cameraOutput {
-    width: 500px;
-    height: 375px;
-    background-color: #666;
+  width: 500px;
+  height: 375px;
+  background-color: #666;
 }
 
-body {
-  font-family: "Helvetica Neue", Helvetica, sans-serif;
-  font-weight: 200;
-  margin: 0 auto 50px;
-  width: 750px;
-}
+
 textarea {
-  font-family: monospace;
-  font-size: inherit;
-  height: 150px;
-  width: 100%;
-}
-pre {
-  white-space: pre-wrap;
-}
-.controls {
-  margin: 10px 0;
+font-family: monospace;
+font-size: inherit;
+height: 150px;
+width: 100%;
 }
 
-.webcams > video:nth-of-type(1) {
-  -webkit-filter: grayscale(1);
-  filter: grayscale(1);
+
+
+#main1 {
+background-color: #141616;
+overflow: hidden;
 }
-.webcams > video:nth-of-type(2) {
-  -webkit-filter: sepia(1);
-  filter: sepia(1);
+
+
+.main1-text {
+padding-top: 175px;
+} 
+
+.main1-img {
+margin-top: -100px;
+}   
+
+#main2 {
+background: #f4f4f4;
+padding-top: 0px;
+min-height: 650px;
+overflow: hidden;
+height: auto;
 }
-.webcams > video:nth-of-type(3) {
-  -webkit-filter: saturate(8);
-  filter: saturate(8);
+
+.main2-img {
+position: absolute;
+right: 0;
 }
-.webcams > video:nth-of-type(4) {
-  -webkit-filter: hue-rotate(90deg);
-  filter: hue-rotate(90deg);
+
+
+#main3 {
+background: #f4f4f4b6;
+padding-top: 0px;
+overflow: hidden;
 }
-.webcams > video:nth-of-type(6) {
-  -webkit-filter: invert(1);
-  filter: invert(1);
-}
-.webcams > video:nth-of-type(7) {
-  -webkit-filter: brightness(3);
-  filter: brightness(3);
-}
-.webcams > video:nth-of-type(8) {
-  -webkit-filter: contrast(4);
-  filter: contrast(4);
-}
-.webcams > video:nth-of-type(9) {
-  -webkit-filter: blur(1px);
-  filter: blur(1px);
+
+.main3-img {
+left: 0;
+margin-left: -300px;
+margin-top: 160px;
+position: absolute;
 }
