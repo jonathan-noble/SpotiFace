@@ -2,10 +2,8 @@
 from keras.preprocessing.image import img_to_array
 from keras.models import load_model
 import io
-import sys
 import numpy as np
 import cv2
-import json
 import tensorflow as tf
 import flask
 from flask import request, jsonify, Flask, url_for
@@ -22,7 +20,7 @@ def my_index():
 
 def get_model():
     global model
-    model = load_model ("./checkpoints/epoch_30.hdf5")
+    model = load_model ("./checkpoints/epoch_50.hdf5")
     global graph
     graph = tf.get_default_graph ()
     print(" * MODEL LOADED ! ")
@@ -75,12 +73,13 @@ def predict():
 
     response = {
         'prediction':{
-            'angry' :prediction[0][0],
-            'scared' :prediction[0][1],
-            'happy' :prediction[0][2],
-            'sad' :prediction[0][3],
-            'surprised' :prediction[0][4],
-            'neutral' :prediction[0][5]
+            'angry': round(prediction[0][0] * 100, 2),
+            'scared': round(prediction[0][1] * 100, 2),
+            'happy': round(prediction[0][2] * 100, 2),
+            'sad': round(prediction[0][3] * 100, 2),
+            'surprised': round(prediction[0][4] * 100, 2),
+            'neutral': round(prediction[0][5] * 100, 2)
         }
     }
+    print(response)
     return jsonify(response)

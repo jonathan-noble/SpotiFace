@@ -36,106 +36,114 @@ export default class App extends Component {
     }
   }
 
-    componentDidMount() {
-      
+  componentDidMount() {
+    
+  }
+
+
+
+  captureShot = () => {
+    const screenshot = this.webcam.getScreenshot();
+    let base64Image = screenshot.replace("data:image/jpeg;base64,","");
+    this.setState({ 
+      imageData: screenshot,
+      });
+    
+    let message = {
+      image: base64Image
     }
 
-
-
-    captureShot = () => {
-      const screenshot = this.webcam.getScreenshot();
-      let base64Image = screenshot.replace("data:image/jpeg;base64,","");
-      this.setState({ 
-        imageData: screenshot,
-       });
       
-      let message = {
-        image: base64Image
-      }
-
-      
-   fetch('http://127.0.0.1:5000/', {
-    method: 'post',
-    headers: {
-        Accept: "application/json",
-        "Content-Type": "application/json",
-        'Access-Control-Allow-Origin': '*'
-    },
-    body: JSON.stringify(message)
-    })
-   .then((response) => {
-    // console.log(response);
-    return response.json();  //response.json() is resolving its promise. It waits for the body to load
-   })
-   .then((data) => {
-    let percent = 100;
-    this.setState( {
-      mood: {
-        angry: (data.prediction.angry.toFixed(3) * percent),
-        scared: (data.prediction.scared.toFixed(3) * percent),
-        happy: (data.prediction.happy.toFixed(3)* percent),
-        sad: (data.prediction.sad.toFixed(3)* percent),
-        surprised: (data.prediction.surprised.toFixed(3)* percent),
-        neutral: (data.prediction.neutral.toFixed(3)* percent),
-      }
-    })
-
-   const keys = Object.keys(data.prediction);
-    // projects data.prediction into an array of object key=prediction pairs
-   const arrayOfPredictions = keys.map(key => ({
-      id: key, 
-      predict: data.prediction[key]
+    fetch('http://127.0.0.1:5000/', {
+      method: 'post',
+      headers: {
+          Accept: "application/json",
+          "Content-Type": "application/json",
+          'Access-Control-Allow-Origin': '*'
+      },
+      body: JSON.stringify(message)
       })
-    );
-   console.log(arrayOfPredictions);
-   console.log(arrayOfPredictions[0].predict);
-
-   let highestPred = arrayOfPredictions.reduce(function(prev, curr) {
-     return prev.predict > curr.predict ? prev : curr;
-  });
-
-   let moodDetected = this.generateMood(highestPred.id); // function where it will return a randomized string from a set of "related" and or "associated" mood words 
-
-   console.log(highestPred.id); 
-   console.log(moodDetected); 
-
-
-   let top3_pred = arrayOfPredictions
-      .sort((a, b) => {
-        return b.predict - a.predict;
-      }).slice(0,3);
-    console.log(top3_pred);
-
-    this.setState( {
-      top3: [...top3_pred]
+    .then((response) => {
+      // console.log(response);
+      return response.json();  //response.json() is resolving its promise. It waits for the body to load
     })
-
-  
-          // search playlist that contains whichever mood is labelled
-    // spotifyApi.search(label_from_json, ["playlist", "album", "track"])
-    // search playlist that contains whichever mood is labelled
-    spotifyApi.searchPlaylists(moodDetected) // remove "Mood" once function generateMood is done
     .then((data) => {
-      console.log('Mood searched: ', data);
-
-      let randNum = Math.floor((Math.random() * 20) + 0);
-
-      this.setState({
-        moodSearch: {
-          name: data.playlists.items[randNum].name,
-          albumArt: data.playlists.items[randNum].images[0].url,
-        },
-        player: {
-          user_id: data.playlists.items[randNum].owner.id,
-          plist_id: data.playlists.items[randNum].id
+      this.setState( {
+        mood: {
+          angry: (data.prediction.angry),
+          scared: (data.prediction.scared),
+          happy: (data.prediction.happy),
+          sad: (data.prediction.sad),
+          surprised: (data.prediction.surprised),
+          neutral: (data.prediction.neutral),
         }
-      });
-
-    })
-    .catch((err) => {
-      console.error(err);
       })
-   })
+
+    const keys = Object.keys(data.prediction);
+      // projects data.prediction into an array of object key=prediction pairs
+    const arrayOfPredictions = keys.map(key => ({
+        id: key, 
+        predict: data.prediction[key]
+        })
+      );
+    console.log(arrayOfPredictions);
+    console.log(arrayOfPredictions[0].predict);
+
+    let highestPred = arrayOfPredictions.reduce(function(prev, curr) {
+      return prev.predict > curr.predict ? prev : curr;
+    });
+
+    let moodDetected = this.generateMood(highestPred.id); // function where it will return a randomized string from a set of "related" and or "associated" mood words 
+
+    console.log(highestPred.id); 
+    console.log(moodDetected); 
+
+
+    let top3_pred = arrayOfPredictions
+        .sort((a, b) => {
+          return b.predict - a.predict;
+        }).slice(0,3);
+      console.log(top3_pred);
+
+      this.setState( {
+        top3: [...top3_pred]
+      })
+
+    
+            // search playlist that contains whichever mood is labelled
+      // spotifyApi.search(label_from_json, ["playlist", "album", "track"])
+      // search playlist that contains whichever mood is labelled
+      spotifyApi.searchPlaylists(moodDetected) // remove "Mood" once function generateMood is done
+      .then((data) => {
+        console.log('Mood searched: ', data);
+
+        let randNum = Math.floor((Math.random() * 20) + 0);
+
+        this.setState({
+          spotify_data: {data},
+          carouselItem1: {
+            name: data.playlists.items[randNum].name,
+            albumArt: data.playlists.items[randNum].images[0].url,
+          },
+          carouselItem2: {
+            name: data.playlists.items[randNum+1].name,
+            albumArt: data.playlists.items[randNum+1].images[0].url,
+          },
+          carouselItem3: {
+            name: data.playlists.items[randNum+2].name,
+            albumArt: data.playlists.items[randNum+2].images[0].url,
+          },
+          player: {
+            user_id: data.playlists.items[randNum].owner.id,
+            plist_id: data.playlists.items[randNum].id
+          }
+        });
+
+      })
+      .catch((err) => {
+        console.error(err);
+        })
+    })
     .catch(error => this.setState({ error,  mood: { angry: null, scared: null, happy: null, sad: null, surprised: null, neutral: null }, }))
     }
     
