@@ -3,6 +3,7 @@ import './App.css';
 import { Container, Row, Col,
    Navbar, NavbarBrand, 
    Button, 
+   Spinner,
    } from 'reactstrap';
 import Webcam from 'react-webcam'; 
 import "react-responsive-carousel/lib/styles/carousel.min.css";
@@ -14,7 +15,7 @@ const spotifyApi = new SpotifyWebApi();
 window.onSpotifyWebPlaybackSDKReady = () => {};
 
 
-let randNum = Math.floor((Math.random() * 20) + 0);
+let global_plist_id = "";
 
 
 export default class App extends Component {  
@@ -33,14 +34,8 @@ export default class App extends Component {
       loggedIn: token ? true : false,
       imageData: null,
       mood: { angry: null, scared: null, happy: null, sad: null, surprised: null, neutral: null},
-      spotify_data: { u_id: '', p_id:''},
-      top3: [],
-      carouselItem1: { name: 'Not Found', albumArt: ''},
-      carouselItem2: { name: 'Not Found', albumArt: ''},
-      carouselItem3: { name: 'Not Found', albumArt: ''},
-      playlistTracks: { content: ''},
+      playlists: [],
       showPlaylistAndCarousel: false,
-      player: { user_id: '', plist_id: '' },
       deviceId: "",
       trackName: "Track Name",
       artistName: "Artist Name",
@@ -49,16 +44,14 @@ export default class App extends Component {
       position: 0,
       duration: 1,
     }
-        // this will later be set by setInterval
-        this.playerCheckInterval = setInterval(() => this.checkForPlayer(), 1000);
-  }
-
-  componentDidMount() {
+    // this will later be set by setInterval
+    this.playerCheckInterval = null;
 
   }
 
-
-
+  componentWillMount() {
+    this.playerCheckInterval = setInterval(() => this.checkForPlayer(), 1000);
+  }
 
   captureShot = () => {
     const screenshot = this.webcam.getScreenshot();
@@ -160,87 +153,73 @@ export default class App extends Component {
     // search playlist that contains whichever mood is labelled
     // spotifyApi.search(label_from_json, ["playlist", "album", "track"])
     // search playlist that contains whichever mood is labelled
-    spotifyApi.searchPlaylists(labelledMood) // remove "Mood" once function generateMood is done
+
+    spotifyApi.searchPlaylists(labelledMood) 
     .then((data) => {
-      console.log('Mood searched: ', data);
+      if(data.playlists.items) {
+        if(data.playlists.items.length > 0) {
+          console.log('Playlists searched: ', data);
+          
+          const playlistsWrangled = data.playlists.items.map(plist => ({ 
+            plist_id: plist.id, 
+            name: plist.name, 
+            albumArt: plist.images[0].url 
+          }));
 
-      this.setState({
-        spotify_data: {
-          u_id: data.playlists.items[randNum].owner.id,
-          p_id: data.playlists.items[randNum].id
-        },
-        playlistTracks: {
-          content: data.playlists.items[randNum].id
-        },
-        carouselItem1: {
-          name: data.playlists.items[randNum].name,
-          albumArt: data.playlists.items[randNum].images[0].url,
-        },
-        carouselItem2: {
-          name: data.playlists.items[randNum+1].name,
-          albumArt: data.playlists.items[randNum+1].images[0].url,
-        },
-        carouselItem3: {
-          name: data.playlists.items[randNum+2].name,
-          albumArt: data.playlists.items[randNum+2].images[0].url,
-        },
-        player: {
-          user_id: data.playlists.items[randNum].owner.id,
-          plist_id: data.playlists.items[randNum].id
-        },
-        showPlaylistAndCarousel: !this.state.showPlaylistAndCarousel
-      });
-
-
-    })
-
+          console.log(playlistsWrangled);
+          
+          this.setState({ playlists: playlistsWrangled  });   
+            
+            // showPlaylistAndCarousel: !this.state.showPlaylistAndCarousel
+          }
+        }
+     })
     .catch((err) => {
       console.error(err);
-      })
+    })
   }
 
-  choosePlaylist(carouselItem, _randNum) {
-    this.setState( {
-        player: {
-            user_id: carouselItem.u_id,
-            plist_id: carouselItem.p_id
-        }
-      })
-    }
-    
-  updatePlaylist(carouselItem1, randumz) {
-    console.log("Updated playlist data: ", carouselItem1);
+
+  checkPlaylists(p_index) {
+    // let playlist = p_index(0);
+    console.log(p_index);
   }
 
-  getPlaylistTracks(state) {
+
+  getPlaylistTracks(plist) {
     let trackIds = [];
     let trackUris = [];
+    let p_id = plist.plist_id;
+    global_plist_id = p_id; 
 
-    spotifyApi.getPlaylistTracks(state)
+    spotifyApi.getPlaylistTracks(p_id)
     .then((data) => {
       if(data.items) {
         if(data.items.length > 0) {
           data.items.forEach((tracks) => {
             trackIds.push(tracks.track.id);
             trackUris.push(tracks.track.uri);
-          });
-          console.log(trackUris);
+          })
+          ;
+          console.log(data.items.length, "Tracks successfully retrieved.");
 
           spotifyApi.play( {
             "uris": trackUris   
           })
           .catch((err) => {
-            console.log(err);
+            console.error(err);
           });       
         }
       }
     })
-
+    .catch((err) => {
+      console.error(err);
+    }); 
   }
 
     
   followPlaylist(playlist_id) {
-    console.log(playlist_id);
+    console.log("You have followed playlist id: ", playlist_id);
     spotifyApi.followPlaylist(playlist_id)
     .catch(e => {
       console.log(e);
@@ -332,7 +311,7 @@ export default class App extends Component {
       clearInterval(this.playerCheckInterval);
       // create a new player
       this.player = new window.Spotify.Player({
-        name: "Jono's Spotify Player",
+        name: "SpotiFace",
         getOAuthToken: cb => { cb(_token); },
       });
       // set up the player's event handlers
@@ -352,12 +331,9 @@ export default class App extends Component {
   }
 
   onPlayClick() {
-    // console.log(track);
     this.player.togglePlay();
 
   }
-
-
 
   onNextClick() {
     this.player.nextTrack();
@@ -393,16 +369,11 @@ export default class App extends Component {
       loggedIn,
       imageData,
       mood,
-      spotify_data,
-      carouselItem1,
-      carouselItem2,
-      carouselItem3,
-      player,
       trackName,
       artistName,
       albumName,
       playing,
-      playlistTracks
+      playlists,
     } = this.state;
 
     return(
@@ -473,60 +444,44 @@ export default class App extends Component {
           <Container fluid>
           <Row className="row">
             <Col sm="7" className="wow fadeInUpBig margin-100">
-            { 
-              this.state.showPlaylistAndCarousel &&
-              <div>
-                <iframe src={"https://open.spotify.com/embed/user/" + player.user_id + "/playlist/" + player.plist_id}
-                  width="600" height="1000" frameBorder="1" allowtransparency="true" allow="encrypted-media"></iframe>
-              </div>
-             }
+              <Carousel
+                width={"85%"}
+                autoPlay 
+                showThumbs={false}
+                useKeyboardArrows
+                infiniteLoop
+                emulateTouch
+                centerMode
+                onClickItem={((index) => this.getPlaylistTracks(playlists[index]))}
+                >
+                { playlists ? 
+                  playlists.map((plist) => {
+                    return <div key={plist.plist_id}> 
+                    <img src={plist.albumArt} alt="Album Art"/>
+                    <p className="legend"> {plist.name}</p>
+                    </div>
+                   }) : <Spinner />
+                }
+              </Carousel>
+
+              
             </Col>
           
             <Col xl="3" className="pull-right text-right margin-20">
-            
-              <Button onClick={() => this.getMoodPlaylist(labelledMood)}>
-                  Get Mood Playlist
-                </Button>
-                <br />
+              <br />
 
-              <Button onClick={() => this.followPlaylist(player.plist_id)}>
+              <Button onClick={() => this.followPlaylist(global_plist_id)}>
                 Follow Playlist
               </Button>
+
+                {/*              {_playlists}
+              <img src={playlists.albumArt[1]}/> */}
+
+            
+                
+
+            
               
-              {
-                this.state.showPlaylistAndCarousel &&
-                <Carousel
-                   autoPlay 
-                   showThumbs={false}
-                   useKeyboardArrows
-                   infiniteLoop
-                   emulateTouch
-                   centerMode
-             
-                   >
-               {/*  onClickItem={this.updatePlaylist(spotify_data, randNum)}  */}
-                <div>
-                   <img src={carouselItem1.albumArt}  alt="Album Art"/>
-                    <p className="legend"> {carouselItem1.name}</p>
-                </div>
-                <div>
-                  <img src={carouselItem2.albumArt} alt="Album Art"/>
-                    <p className="legend">{carouselItem2.name}</p>
-                </div>
-                <div>
-                  <img src={carouselItem3.albumArt} alt="Album Art"/>
-                    <p className="legend">{carouselItem3.name}</p>
-                </div>
-                <div>
-                  <img src={carouselItem1.albumArt} alt="Album Art"/>
-                  <p className="legend">Legend 4</p>
-                </div>
-                <div>  
-                  <img src={carouselItem2.albumArt} alt="Album Art"/>
-                  <p className="legend">Legend 5</p>
-                </div>
-               </Carousel>
-              }
             </Col>
           </Row>
           </Container>
@@ -544,7 +499,6 @@ export default class App extends Component {
                 <Button onClick={() => this.onPrevClick()}>Previous</Button>
                 <Button onClick={() => this.onPlayClick()}>{playing ? "Pause" : "Play"}</Button>
                 <Button onClick={() => this.onNextClick()}>Next</Button>
-                <Button onClick={() => this.getPlaylistTracks(playlistTracks.content)}>Get Tracks</Button>
               </p>
             </div>
 
