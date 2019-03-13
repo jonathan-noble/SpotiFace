@@ -11,6 +11,11 @@ import SpotifyWebApi from 'spotify-web-api-js';
 const spotifyApi = new SpotifyWebApi();
 
 
+window.onSpotifyWebPlaybackSDKReady = () => {};
+
+
+let randNum = Math.floor((Math.random() * 20) + 0);
+
 
 export default class App extends Component {  
 
@@ -24,21 +29,34 @@ export default class App extends Component {
     
 
     this.state = {
+      _token: token,
       loggedIn: token ? true : false,
       imageData: null,
       mood: { angry: null, scared: null, happy: null, sad: null, surprised: null, neutral: null},
-      spotify_data: null,
+      spotify_data: { u_id: '', p_id:''},
       top3: [],
       carouselItem1: { name: 'Not Found', albumArt: ''},
       carouselItem2: { name: 'Not Found', albumArt: ''},
       carouselItem3: { name: 'Not Found', albumArt: ''},
+      playlistTracks: { content: ''},
+      showPlaylistAndCarousel: false,
       player: { user_id: '', plist_id: '' },
+      deviceId: "",
+      trackName: "Track Name",
+      artistName: "Artist Name",
+      albumName: "Album Name",
+      playing: false,
+      position: 0,
+      duration: 1,
     }
+        // this will later be set by setInterval
+        this.playerCheckInterval = setInterval(() => this.checkForPlayer(), 1000);
   }
 
   componentDidMount() {
-    
+
   }
+
 
 
 
@@ -53,99 +71,68 @@ export default class App extends Component {
       image: base64Image
     }
 
-      
+    
     fetch('http://127.0.0.1:5000/', {
-      method: 'post',
-      headers: {
-          Accept: "application/json",
-          "Content-Type": "application/json",
-          'Access-Control-Allow-Origin': '*'
-      },
-      body: JSON.stringify(message)
-      })
+    method: 'post',
+    headers: {
+        Accept: "application/json",
+        "Content-Type": "application/json",
+        'Access-Control-Allow-Origin': '*'
+    },
+    body: JSON.stringify(message)
+    })
     .then((response) => {
-      // console.log(response);
-      return response.json();  //response.json() is resolving its promise. It waits for the body to load
+    return response.json();  //response.json() is resolving its promise. It waits for the body to load
     })
     .then((data) => {
-      this.setState( {
-        mood: {
-          angry: (data.prediction.angry),
-          scared: (data.prediction.scared),
-          happy: (data.prediction.happy),
-          sad: (data.prediction.sad),
-          surprised: (data.prediction.surprised),
-          neutral: (data.prediction.neutral),
-        }
-      })
+    this.setState( {
+      mood: {
+        angry: data.prediction.angry,
+        scared: data.prediction.scared,
+        happy: data.prediction.happy,
+        sad: data.prediction.sad,
+        surprised: data.prediction.surprised,
+        neutral: data.prediction.neutral,
+      }
+    })
 
     const keys = Object.keys(data.prediction);
-      // projects data.prediction into an array of object key=prediction pairs
+    // projects data.prediction into an array of object key=prediction pairs
     const arrayOfPredictions = keys.map(key => ({
-        id: key, 
-        predict: data.prediction[key]
-        })
-      );
+      id: key, 
+      predict: data.prediction[key]
+      })
+    );
     console.log(arrayOfPredictions);
     console.log(arrayOfPredictions[0].predict);
 
     let highestPred = arrayOfPredictions.reduce(function(prev, curr) {
       return prev.predict > curr.predict ? prev : curr;
-    });
+  });
 
-    let moodDetected = this.generateMood(highestPred.id); // function where it will return a randomized string from a set of "related" and or "associated" mood words 
+  let moodDetected = this.generateMood(highestPred.id); // function where it will return a randomized string from a set of "related" and or "associated" mood words 
 
-    console.log(highestPred.id); 
-    console.log(moodDetected); 
+  console.log(highestPred.id); 
+  console.log(moodDetected); 
 
 
-    let top3_pred = arrayOfPredictions
-        .sort((a, b) => {
-          return b.predict - a.predict;
-        }).slice(0,3);
-      console.log(top3_pred);
+  let top3_pred = arrayOfPredictions
+    .sort((a, b) => {
+      return b.predict - a.predict;
+    }).slice(0,3);
+  console.log(top3_pred);
 
-      this.setState( {
-        top3: [...top3_pred]
-      })
+  this.setState( {
+    top3: [...top3_pred]
+  })
 
-    
-            // search playlist that contains whichever mood is labelled
-      // spotifyApi.search(label_from_json, ["playlist", "album", "track"])
-      // search playlist that contains whichever mood is labelled
-      spotifyApi.searchPlaylists(moodDetected) // remove "Mood" once function generateMood is done
-      .then((data) => {
-        console.log('Mood searched: ', data);
+  this.getMoodPlaylist(moodDetected);
 
-        let randNum = Math.floor((Math.random() * 20) + 0);
 
-        this.setState({
-          spotify_data: {data},
-          carouselItem1: {
-            name: data.playlists.items[randNum].name,
-            albumArt: data.playlists.items[randNum].images[0].url,
-          },
-          carouselItem2: {
-            name: data.playlists.items[randNum+1].name,
-            albumArt: data.playlists.items[randNum+1].images[0].url,
-          },
-          carouselItem3: {
-            name: data.playlists.items[randNum+2].name,
-            albumArt: data.playlists.items[randNum+2].images[0].url,
-          },
-          player: {
-            user_id: data.playlists.items[randNum].owner.id,
-            plist_id: data.playlists.items[randNum].id
-          }
-        });
 
-      })
-      .catch((err) => {
-        console.error(err);
-        })
-    })
-    .catch(error => this.setState({ error,  mood: { angry: null, scared: null, happy: null, sad: null, surprised: null, neutral: null }, }))
-    }
+  })
+  .catch(error => this.setState({ error,  mood: { angry: null, scared: null, happy: null, sad: null, surprised: null, neutral: null }, }))
+  }
     
 
   generateMood(moodGen) {
@@ -157,32 +144,99 @@ export default class App extends Component {
       case 'happy':
         let happyVal = Math.floor(Math.random()*happyList.length);
         return happyList[happyVal];
-        break;
       case 'neutral':
         let neutralVal = Math.floor(Math.random()*neutralList.length);
         return neutralList[neutralVal];
-        break;
       case 'surprised':
       let surprisedVal = Math.floor(Math.random()*surprisedList.length);
       return surprisedList[surprisedVal];
-      break;
       default:
         return "Mood"
     }
   }
 
+
+  getMoodPlaylist(labelledMood) {
+    // search playlist that contains whichever mood is labelled
+    // spotifyApi.search(label_from_json, ["playlist", "album", "track"])
+    // search playlist that contains whichever mood is labelled
+    spotifyApi.searchPlaylists(labelledMood) // remove "Mood" once function generateMood is done
+    .then((data) => {
+      console.log('Mood searched: ', data);
+
+      this.setState({
+        spotify_data: {
+          u_id: data.playlists.items[randNum].owner.id,
+          p_id: data.playlists.items[randNum].id
+        },
+        playlistTracks: {
+          content: data.playlists.items[randNum].id
+        },
+        carouselItem1: {
+          name: data.playlists.items[randNum].name,
+          albumArt: data.playlists.items[randNum].images[0].url,
+        },
+        carouselItem2: {
+          name: data.playlists.items[randNum+1].name,
+          albumArt: data.playlists.items[randNum+1].images[0].url,
+        },
+        carouselItem3: {
+          name: data.playlists.items[randNum+2].name,
+          albumArt: data.playlists.items[randNum+2].images[0].url,
+        },
+        player: {
+          user_id: data.playlists.items[randNum].owner.id,
+          plist_id: data.playlists.items[randNum].id
+        },
+        showPlaylistAndCarousel: !this.state.showPlaylistAndCarousel
+      });
+
+
+    })
+
+    .catch((err) => {
+      console.error(err);
+      })
+  }
+
   choosePlaylist(carouselItem, _randNum) {
     this.setState( {
         player: {
-            user_id: carouselItem.playlists.items[_randNum].owner.id,
-            plist_id: carouselItem.playlists.items[_randNum].id
+            user_id: carouselItem.u_id,
+            plist_id: carouselItem.p_id
         }
       })
     }
     
-    updatePlaylist(carouselItem1, randumz) {
-      console.log("Updated playlist data: ", carouselItem1);
-    }
+  updatePlaylist(carouselItem1, randumz) {
+    console.log("Updated playlist data: ", carouselItem1);
+  }
+
+  getPlaylistTracks(state) {
+    let trackIds = [];
+    let trackUris = [];
+
+    spotifyApi.getPlaylistTracks(state)
+    .then((data) => {
+      if(data.items) {
+        if(data.items.length > 0) {
+          data.items.forEach((tracks) => {
+            trackIds.push(tracks.track.id);
+            trackUris.push(tracks.track.uri);
+          });
+          console.log(trackUris);
+
+          spotifyApi.play( {
+            "uris": trackUris   
+          })
+          .catch((err) => {
+            console.log(err);
+          });       
+        }
+      }
+    })
+
+  }
 
     
   followPlaylist(playlist_id) {
@@ -191,6 +245,10 @@ export default class App extends Component {
     .catch(e => {
       console.log(e);
     });
+  }
+
+  getRecommendations() {
+    spotifyApi.getRecommendations("Rock")
   }
 
 
@@ -207,6 +265,121 @@ export default class App extends Component {
   }
 
 
+  // when we receive a new update from the player
+  onStateChanged(state) {  // only update if we got a real state
+    if (state !== null) {
+      const {
+        current_track: currentTrack,
+        position,
+        duration,
+      } = state.track_window;
+      const trackName = currentTrack.name;
+      const albumName = currentTrack.album.name;
+      const artistName = currentTrack.artists
+                        .map(artist => artist.name)
+                        .join(", ");
+      const playing = !state.paused;
+
+      this.setState({
+        position,
+        duration,
+        trackName,
+        albumName,
+        artistName,
+        playing
+      });
+    } else {
+      // state was null, user might have swapped to another device
+      this.setState({ error: "Looks like you might have swapped to another device?" });
+    }
+  }
+
+  createEventHandlers() {
+    // problem setting up the player
+    this.player.on('initialization_error', e => { console.error(e); });
+    // problem authenticating the user.
+    // either the token was invalid in the first place,
+    // or it expired (it lasts one hour)
+    this.player.on('authentication_error', e => {
+      console.error(e);
+      this.setState({ loggedIn: false });
+    });
+    // currently only premium accounts can use the API
+    this.player.on('account_error', e => { console.error(e); });
+    // loading/playing the track failed for some reason
+    this.player.on('playback_error', e => { console.error(e); });
+
+    // Playback status updates
+    this.player.on('player_state_changed', state => this.onStateChanged(state));
+
+    // Ready
+    this.player.on('ready', async data => {
+      let { device_id } = data;
+      console.log("Let the music play on!");
+      // set the deviceId variable, then let's try
+      // to swap music playback to *our* player!
+      await this.setState({ deviceId: device_id });
+      this.transferPlaybackHere();
+    });
+  } 
+
+  checkForPlayer() {
+    const { _token } = this.state;
+    
+    // if the Spotify SDK has loaded
+    if (window.Spotify !== null) {
+      // cancel the interval
+      clearInterval(this.playerCheckInterval);
+      // create a new player
+      this.player = new window.Spotify.Player({
+        name: "Jono's Spotify Player",
+        getOAuthToken: cb => { cb(_token); },
+      });
+      // set up the player's event handlers
+      this.createEventHandlers();
+      
+      // finally, connect!
+      this.player.connect();
+    }
+  }
+
+  updateCurrentlyPlaying(track) {
+
+  }
+
+  onPrevClick() {
+    this.player.previousTrack();
+  }
+
+  onPlayClick() {
+    // console.log(track);
+    this.player.togglePlay();
+
+  }
+
+
+
+  onNextClick() {
+    this.player.nextTrack();
+  }
+
+  transferPlaybackHere() {
+    const { deviceId, _token } = this.state;
+    // https://beta.developer.spotify.com/documentation/web-api/reference/player/transfer-a-users-playback/
+    fetch("https://api.spotify.com/v1/me/player", {
+      method: "PUT",
+      headers: {
+        authorization: `Bearer ${_token}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        "device_ids": [ deviceId ],
+        // true: start playing music if it was paused on the other device
+        // false: paused if paused on other device, start playing music otherwise
+        "play": false,
+      }),
+    });
+  }
   
 //render the objects
   render() {
@@ -225,6 +398,11 @@ export default class App extends Component {
       carouselItem2,
       carouselItem3,
       player,
+      trackName,
+      artistName,
+      albumName,
+      playing,
+      playlistTracks
     } = this.state;
 
     return(
@@ -239,8 +417,6 @@ export default class App extends Component {
           </Navbar>
 
             
-
-
           <section id="main1"> 
           <Container fluid>
           <Row className="row">
@@ -297,37 +473,28 @@ export default class App extends Component {
           <Container fluid>
           <Row className="row">
             <Col sm="7" className="wow fadeInUpBig margin-100">
-                {/*
-                    <div>
-                  <form action={"spotify:user:" + player.user_id + ":playlist:" + player.plist_id}>
-                  <input type="image" src="spotify.png" alt="Open Spotify" width="115" height="60"/>
-                  </form>
-                </div>
-                */}
-
-                  <div>
-                  <iframe src={"https://open.spotify.com/embed/user/" + player.user_id + "/playlist/" + player.plist_id}
-                    width="600" height="1000" frameBorder="1" allowtransparency="true" allow="encrypted-media"></iframe>
-                  </div>
-                  {/*}
-                  <iframe src="https://open.spotify.com/embed/track/2xxMCCFva1GRQAYl2rlrpM" 
-                  width="300" height="380" frameborder="0" allowtransparency="true" allow="encrypted-media"></iframe>
-                */}
+            { 
+              this.state.showPlaylistAndCarousel &&
+              <div>
+                <iframe src={"https://open.spotify.com/embed/user/" + player.user_id + "/playlist/" + player.plist_id}
+                  width="600" height="1000" frameBorder="1" allowtransparency="true" allow="encrypted-media"></iframe>
+              </div>
+             }
             </Col>
           
             <Col xl="3" className="pull-right text-right margin-20">
-
-               {/* { loggedIn &&
-                  <Button onClick={() => this.getMoodPlaylist(labelledMood)}>
-                    Get Mood Playlist
-                  </Button>
-                }  */} 
+            
+              <Button onClick={() => this.getMoodPlaylist(labelledMood)}>
+                  Get Mood Playlist
+                </Button>
                 <br />
 
               <Button onClick={() => this.followPlaylist(player.plist_id)}>
                 Follow Playlist
               </Button>
-
+              
+              {
+                this.state.showPlaylistAndCarousel &&
                 <Carousel
                    autoPlay 
                    showThumbs={false}
@@ -335,9 +502,9 @@ export default class App extends Component {
                    infiniteLoop
                    emulateTouch
                    centerMode
-                   onClickItem={this.updatePlaylist(spotify_data, 1)}
+             
                    >
-                 {/* onClickItem={this.choosePlaylist(carouselItem1, 1)} */}
+               {/*  onClickItem={this.updatePlaylist(spotify_data, randNum)}  */}
                 <div>
                    <img src={carouselItem1.albumArt}  alt="Album Art"/>
                     <p className="legend"> {carouselItem1.name}</p>
@@ -358,15 +525,32 @@ export default class App extends Component {
                   <img src={carouselItem2.albumArt} alt="Album Art"/>
                   <p className="legend">Legend 5</p>
                 </div>
-
                </Carousel>
-           
+              }
             </Col>
-              
           </Row>
           </Container>
           </section>
+          
 
+          <section id="main1">
+          <Container fluid> 
+          <Row className="row">       
+              <div>      
+              <p>Artist: {artistName}</p>
+              <p>Track: {trackName}</p>
+              <p>Album: {albumName}</p>
+              <p>
+                <Button onClick={() => this.onPrevClick()}>Previous</Button>
+                <Button onClick={() => this.onPlayClick()}>{playing ? "Pause" : "Play"}</Button>
+                <Button onClick={() => this.onNextClick()}>Next</Button>
+                <Button onClick={() => this.getPlaylistTracks(playlistTracks.content)}>Get Tracks</Button>
+              </p>
+            </div>
+
+          </Row>
+          </Container>    
+          </section>
 
         </div>  :          
           <html>
