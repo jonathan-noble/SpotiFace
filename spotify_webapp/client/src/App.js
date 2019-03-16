@@ -1,21 +1,20 @@
 import React, { Component } from 'react';
 import './App.css';
 import { Container, Row, Col,
-   Navbar, NavbarBrand, 
+   Navbar, NavbarBrand, Nav, NavItem,
    Button, 
+   Popover, PopoverBody,
    Spinner,
    } from 'reactstrap';
+import Sticky from 'react-sticky-el';
 import Webcam from 'react-webcam'; 
 import "react-responsive-carousel/lib/styles/carousel.min.css";
 import { Carousel } from 'react-responsive-carousel';
 import SpotifyWebApi from 'spotify-web-api-js';
 const spotifyApi = new SpotifyWebApi();
 
-
 window.onSpotifyWebPlaybackSDKReady = () => {};
 
-
-let global_plist_id = "";
 
 
 export default class App extends Component {  
@@ -28,18 +27,19 @@ export default class App extends Component {
       spotifyApi.setAccessToken(token);
     }
     
-
     this.state = {
       _token: token,
       loggedIn: token ? true : false,
+      user: {},
       imageData: null,
       mood: { angry: null, scared: null, happy: null, sad: null, surprised: null, neutral: null},
+      highestPredicted: {},
       playlists: [],
+      playlistID: "",
       showPlaylistAndCarousel: false,
+      popoverOpen: false,
       deviceId: "",
-      trackName: "Track Name",
-      artistName: "Artist Name",
-      albumName: "Album Name",
+      currTrack: {},
       playing: false,
       position: 0,
       duration: 1,
@@ -49,15 +49,56 @@ export default class App extends Component {
 
   }
 
-  componentWillMount() {
+  componentDidMount() {
     this.playerCheckInterval = setInterval(() => this.checkForPlayer(), 1000);
+    this.displayProfile();
   }
+
+  toggle() {
+    this.setState({
+      popoverOpen: !this.state.popoverOpen
+    });
+  }
+
+  getHashParams() {
+    var hashParams = {};
+    var e, r = /([^&;=]+)=?([^&;]*)/g,
+        q = window.location.hash.substring(1);
+    e = r.exec(q)
+    while (e) {
+      hashParams[e[1]] = decodeURIComponent(e[2]);
+      e = r.exec(q);
+    }
+    return hashParams;
+  }
+
+
+  displayProfile() {
+    spotifyApi.getMe()
+    .then((_user) => {
+      console.log(_user);
+
+      const user = {
+        name: _user.display_name,
+        pic: _user.images[0].url
+      }
+
+      this.setState({
+        user
+      })
+      
+     })
+    .catch((err) => {
+      console.error(err);
+    });     
+  }
+
 
   captureShot = () => {
     const screenshot = this.webcam.getScreenshot();
     let base64Image = screenshot.replace("data:image/jpeg;base64,","");
     this.setState({ 
-      imageData: screenshot,
+      imageData: screenshot
       });
     
     let message = {
@@ -78,100 +119,103 @@ export default class App extends Component {
     return response.json();  //response.json() is resolving its promise. It waits for the body to load
     })
     .then((data) => {
-    this.setState( {
-      mood: {
-        angry: data.prediction.angry,
-        scared: data.prediction.scared,
-        happy: data.prediction.happy,
-        sad: data.prediction.sad,
-        surprised: data.prediction.surprised,
-        neutral: data.prediction.neutral,
-      }
-    })
-
-    const keys = Object.keys(data.prediction);
-    // projects data.prediction into an array of object key=prediction pairs
-    const arrayOfPredictions = keys.map(key => ({
-      id: key, 
-      predict: data.prediction[key]
+      this.setState( {
+        mood: {
+          angry: data.prediction.angry,
+          scared: data.prediction.scared,
+          happy: data.prediction.happy,
+          sad: data.prediction.sad,
+          surprised: data.prediction.surprised,
+          neutral: data.prediction.neutral,
+        }
       })
-    );
-    console.log(arrayOfPredictions);
-    console.log(arrayOfPredictions[0].predict);
 
-    let highestPred = arrayOfPredictions.reduce(function(prev, curr) {
-      return prev.predict > curr.predict ? prev : curr;
-  });
+      const keys = Object.keys(data.prediction);
+      // projects data.prediction into an array of object key=prediction pairs
+      const arrayOfPredictions = keys.map(key => ({
+        id: key, 
+        predict: data.prediction[key]
+        })
+      );
 
-  let moodDetected = this.generateMood(highestPred.id); // function where it will return a randomized string from a set of "related" and or "associated" mood words 
+      let highestPred = arrayOfPredictions.reduce(function(prev, curr) {
+        return prev.predict > curr.predict ? prev : curr;
+        });
 
-  console.log(highestPred.id); 
-  console.log(moodDetected); 
+      let moodDetected = this.generateMood(highestPred.id); // function where it will return a randomized string from a set of "related" and or "associated" mood words 
 
+      console.log(highestPred.id, arrayOfPredictions[0].predict); 
 
-  let top3_pred = arrayOfPredictions
-    .sort((a, b) => {
-      return b.predict - a.predict;
-    }).slice(0,3);
-  console.log(top3_pred);
+      this.setState( {
+        highestPredicted: highestPred
+      })
 
-  this.setState( {
-    top3: [...top3_pred]
-  })
-
-  this.getMoodPlaylist(moodDetected);
-
-
-
+      this.getMoodPlaylist(moodDetected);
   })
   .catch(error => this.setState({ error,  mood: { angry: null, scared: null, happy: null, sad: null, surprised: null, neutral: null }, }))
   }
     
 
   generateMood(moodGen) {
-    const happyList =  ['happy mood', 'celebrate', 'dance', 'energy', 'boost', 'reggae'];
-    const neutralList =  ['neutral mood', 'chill', 'acoustic', 'relaxed', 'nature', 'couch'];
+    const angryList =  ['angry mood', 'annoyed', 'bitter', 'rock', 'mad', 'metal'];
+    const scaredList =  ['scared mood', 'anxious', 'fear', 'frightened', 'panicked', 'afraid'];
+    const happyList =  ['happy mood', 'celebrate', 'dance', 'energy', 'upbeat', 'reggae', 'lively'];
+    const sadList =  ['sad mood', 'heartbroken', 'sorry', 'melancholy', 'pessimistic', 'unfortunate'];
     const surprisedList =  ['surprised mood', 'shocked', 'wow', 'amazing', 'techno', 'damn'];
+    const neutralList =  ['neutral mood', 'chill', 'acoustic', 'relaxed', 'nature', 'couch'];
 
     switch(moodGen) {
+      case 'angry':
+        let angryVal = Math.floor(Math.random()*angryList.length);
+        return angryList[angryVal];
+      case 'scared':
+        let scaredVal = Math.floor(Math.random()*scaredList.length);
+        return scaredList[scaredVal];
       case 'happy':
         let happyVal = Math.floor(Math.random()*happyList.length);
         return happyList[happyVal];
+      case 'sad':
+        let sadVal = Math.floor(Math.random()*sadList.length);
+        return sadList[sadVal];
+      case 'surprised':
+        let surprisedVal = Math.floor(Math.random()*surprisedList.length);
+        return surprisedList[surprisedVal];
       case 'neutral':
         let neutralVal = Math.floor(Math.random()*neutralList.length);
         return neutralList[neutralVal];
-      case 'surprised':
-      let surprisedVal = Math.floor(Math.random()*surprisedList.length);
-      return surprisedList[surprisedVal];
       default:
-        return "Mood"
+        return "Random Mood"
     }
   }
 
 
   getMoodPlaylist(labelledMood) {
+    console.log(labelledMood);
     // search playlist that contains whichever mood is labelled
     // spotifyApi.search(label_from_json, ["playlist", "album", "track"])
     // search playlist that contains whichever mood is labelled
-
     spotifyApi.searchPlaylists(labelledMood) 
     .then((data) => {
       if(data.playlists.items) {
         if(data.playlists.items.length > 0) {
           console.log('Playlists searched: ', data);
           
-          const playlistsWrangled = data.playlists.items.map(plist => ({ 
-            plist_id: plist.id, 
-            name: plist.name, 
-            albumArt: plist.images[0].url 
-          }));
+          let _items = data.playlists.items.sort( () => {
+                      return 10 - (Math.random() * data.playlists.items.length);
+                  })
 
-          console.log(playlistsWrangled);
-          
-          this.setState({ playlists: playlistsWrangled  });   
-            
-            // showPlaylistAndCarousel: !this.state.showPlaylistAndCarousel
-          }
+          const playlistsWrangled = _items
+                  .map( (plist) => ({ 
+                    plist_id: plist.id, 
+                    name: plist.name, 
+                    albumArt: plist.images[0].url 
+                  })).slice(0, 10);
+
+              
+              this.setState({ playlists: playlistsWrangled });   
+                
+                // showPlaylistAndCarousel: !this.state.showPlaylistAndCarousel
+              }
         }
      })
     .catch((err) => {
@@ -180,17 +224,14 @@ export default class App extends Component {
   }
 
 
-  checkPlaylists(p_index) {
-    // let playlist = p_index(0);
-    console.log(p_index);
-  }
-
-
   getPlaylistTracks(plist) {
     let trackIds = [];
     let trackUris = [];
     let p_id = plist.plist_id;
-    global_plist_id = p_id; 
+
+    this.setState( {
+      playlistID: p_id
+    })
 
     spotifyApi.getPlaylistTracks(p_id)
     .then((data) => {
@@ -226,54 +267,43 @@ export default class App extends Component {
     });
   }
 
+
   getRecommendations() {
     spotifyApi.getRecommendations("Rock")
   }
 
-
-  getHashParams() {
-    var hashParams = {};
-    var e, r = /([^&;=]+)=?([^&;]*)/g,
-        q = window.location.hash.substring(1);
-    e = r.exec(q)
-    while (e) {
-      hashParams[e[1]] = decodeURIComponent(e[2]);
-      e = r.exec(q);
-    }
-    return hashParams;
-  }
-
-
   // when we receive a new update from the player
-  onStateChanged(state) {  // only update if we got a real state
+  currentTrackStateChange(state) {  // only update if we got a real state
     if (state !== null) {
       const {
         current_track: currentTrack,
         position,
         duration,
       } = state.track_window;
-      const trackName = currentTrack.name;
-      const albumName = currentTrack.album.name;
-      const artistName = currentTrack.artists
-                        .map(artist => artist.name)
-                        .join(", ");
+
+      const currTrack = {
+        trackName: currentTrack.name,
+        albumImg: currentTrack.album.images[0].url,
+        artistName: currentTrack.artists
+                    .map(artist => artist.name)
+                    .join(", ")
+      }
+
       const playing = !state.paused;
 
       this.setState({
         position,
         duration,
-        trackName,
-        albumName,
-        artistName,
+        currTrack,
         playing
       });
     } else {
       // state was null, user might have swapped to another device
-      this.setState({ error: "Looks like you might have swapped to another device?" });
+      console.log("Looks like you might have swapped to another device?");
     }
   }
 
-  createEventHandlers() {
+  createPlaybackHandlers() {
     // problem setting up the player
     this.player.on('initialization_error', e => { console.error(e); });
     // problem authenticating the user.
@@ -289,7 +319,7 @@ export default class App extends Component {
     this.player.on('playback_error', e => { console.error(e); });
 
     // Playback status updates
-    this.player.on('player_state_changed', state => this.onStateChanged(state));
+    this.player.on('player_state_changed', state => this.currentTrackStateChange(state));
 
     // Ready
     this.player.on('ready', async data => {
@@ -315,16 +345,13 @@ export default class App extends Component {
         getOAuthToken: cb => { cb(_token); },
       });
       // set up the player's event handlers
-      this.createEventHandlers();
+      this.createPlaybackHandlers();
       
       // finally, connect!
       this.player.connect();
     }
   }
 
-  updateCurrentlyPlaying(track) {
-
-  }
 
   onPrevClick() {
     this.player.previousTrack();
@@ -367,13 +394,14 @@ export default class App extends Component {
 
     const {
       loggedIn,
+      user,
       imageData,
       mood,
-      trackName,
-      artistName,
-      albumName,
+      highestPredicted,
+      currTrack,
       playing,
       playlists,
+      playlistID
     } = this.state;
 
     return(
@@ -382,12 +410,18 @@ export default class App extends Component {
         <div>
           <Navbar color="dark" light expand="md">
           <NavbarBrand>SpotiFace</NavbarBrand>
-
+          <Nav className="ml-auto" navbar>
+          <NavItem>
+            <img src={user.pic} alt="profile" width="80" />
+          </NavItem>
+          <NavItem>
+          <p className="legend"> {user.name} </p>
+          </NavItem>
+          </Nav>
           {/*  <Button href='http://localhost:8888' className="btn btn-secondary btn-lg">Log Out
               <i className="fa fa-dribbble"></i></Button>*/}
           </Navbar>
-
-            
+ 
           <section id="main1"> 
           <Container fluid>
           <Row className="row">
@@ -406,7 +440,6 @@ export default class App extends Component {
                 <h1>Take a photo!</h1>
                 <h3>Let me recommend a playlist<strong><em> for you!</em></strong></h3>
                 <a onClick={this.captureShot} href="#main2" className="btn btn-primary btn-lg">Take a photo<i className="fa fa-cloud-download"></i></a>
-
             </Col>
           </Row>
           </Container>
@@ -419,23 +452,27 @@ export default class App extends Component {
             <Col sm="3" className="pull-left text-left margin-100">
    { /*  
                 <div>{mood.map((item) => (<div>{item.desc + ' ' + item.expense}</div>))}</div>    */ } 
+               <a href="#main1" className="btn btn-secondary btn-lg">One more time?<i className="fa fa-envelope"></i></a>  
+               
+                { mood.angry ?
+                <div>
                 <p>angry: {mood.angry} </p>
                 <p>scared:   {mood.scared} </p>
                 <p>happy:    {mood.happy}</p>
                 <p>sad:     {mood.sad}</p>
                 <p>surprised:  {mood.surprised}</p>
                 <p>neutral:   {mood.neutral}</p>  
-                <h2> Your current mood is: </h2> <br/>
-                             
-               <a href="#main1" className="btn btn-secondary btn-lg">One more time?<i className="fa fa-envelope"></i></a>  
+                <h2> Your current mood is: {highestPredicted.id} </h2> <br/>
+                </div>  : <Spinner/>
+               }
+
             </Col>
           
             <Col xl="7" className="margin-150_lesstop">
               {imageData ? 
                 <p><img className="main2-img img-responsive pull-right" src={imageData} alt="Snapshot"/></p>
                 : null}
-            </Col>
-              
+            </Col>          
           </Row>
           </Container>
           </section>
@@ -462,49 +499,55 @@ export default class App extends Component {
                     </div>
                    }) : <Spinner />
                 }
-              </Carousel>
-
-              
+              </Carousel>    
             </Col>
           
             <Col xl="3" className="pull-right text-right margin-20">
-              <br />
+              <Button onClick={() => this.getMoodPlaylist(this.generateMood(highestPredicted.id))}>Reload</Button>
+                <br />
 
-              <Button onClick={() => this.followPlaylist(global_plist_id)}>
-                Follow Playlist
-              </Button>
-
-                {/*              {_playlists}
-              <img src={playlists.albumArt[1]}/> */}
-
-            
-                
-
-            
-              
+              { playlistID ? <Button onClick={() => this.followPlaylist(playlistID)}>Follow Playlist</Button>
+                :  <div>
+                <Button id="Popover1" type="button">
+                  Follow Playlist
+                </Button>
+                <Popover placement="bottom" isOpen={this.state.popoverOpen} target="Popover1" toggle={this.toggle}>
+                  <PopoverBody>Choose a playlist from the carousel first!</PopoverBody>
+                </Popover>
+                </div>
+              } 
             </Col>
           </Row>
           </Container>
           </section>
           
 
-          <section id="main1">
-          <Container fluid> 
-          <Row className="row">       
-              <div>      
-              <p>Artist: {artistName}</p>
-              <p>Track: {trackName}</p>
-              <p>Album: {albumName}</p>
-              <p>
-                <Button onClick={() => this.onPrevClick()}>Previous</Button>
-                <Button onClick={() => this.onPlayClick()}>{playing ? "Pause" : "Play"}</Button>
-                <Button onClick={() => this.onNextClick()}>Next</Button>
-              </p>
-            </div>
+          {playlistID ? 
+            <section id="player">
+            <Container fluid> 
+            <Row className="row">       
+                <Col sm="4" className="margin-10" >  
+                  { currTrack.albumImg ? 
+                    <div>
+                    <img src={currTrack.albumImg} alt="album_img" width="140"/>
+                    <h3>{currTrack.trackName}</h3>
+                    <p>{currTrack.artistName}</p> 
+                    </div>
+                    : <Spinner/>
+                  }
+                </Col>   
+                <Col sm="6">
+                <Sticky mode="bottom" className="player">
+                  <Button className="player-btn" onClick={() => this.onPrevClick()}>Previous</Button>
+                  <Button className="player-btn" onClick={() => this.onPlayClick()}>{playing ? "Pause" : "Play"}<i className="fa fa-step-forward"></i></Button>
+                  <Button className="player-btn" onClick={() => this.onNextClick()}>Next</Button>  
+                  </Sticky>
+                </Col>
+            </Row>
+            </Container>    
+            </section> : null 
+           }
 
-          </Row>
-          </Container>    
-          </section>
 
         </div>  :          
           <html>

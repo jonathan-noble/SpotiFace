@@ -20,11 +20,11 @@ numpy==1.14.6
 opencv-python==3.4.3.18
 pydot==1.4.0
 pyparsing==2.3.0
-PyYAML==3.13
-requests==2.18.4
+PyYAML==4.2b1
+requests==2.20.0
 scikit-learn==0.20.1
 scipy==1.1.0
 six==1.11.0
-urllib3==1.22
+urllib3==1.23
 virtualenv==16.3.0
 Werkzeug==0.14.1
