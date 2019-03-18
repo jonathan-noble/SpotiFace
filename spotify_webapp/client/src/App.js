@@ -15,8 +15,6 @@ const spotifyApi = new SpotifyWebApi();
 
 window.onSpotifyWebPlaybackSDKReady = () => {};
 
-
-
 export default class App extends Component {  
 
   constructor(props){
@@ -35,7 +33,9 @@ export default class App extends Component {
       mood: { angry: null, scared: null, happy: null, sad: null, surprised: null, neutral: null},
       highestPredicted: {},
       playlists: [],
+      tracks: {},
       playlistID: "",
+      trackID: "",
       showPlaylistAndCarousel: false,
       popoverOpen: false,
       deviceId: "",
@@ -46,6 +46,7 @@ export default class App extends Component {
     }
     // this will later be set by setInterval
     this.playerCheckInterval = null;
+    this.toggle = this.toggle.bind(this);
 
   }
 
@@ -53,6 +54,7 @@ export default class App extends Component {
     this.playerCheckInterval = setInterval(() => this.checkForPlayer(), 1000);
     this.displayProfile();
   }
+
 
   toggle() {
     this.setState({
@@ -237,12 +239,11 @@ export default class App extends Component {
     .then((data) => {
       if(data.items) {
         if(data.items.length > 0) {
-          data.items.forEach((tracks) => {
-            trackIds.push(tracks.track.id);
-            trackUris.push(tracks.track.uri);
-          })
-          ;
-          console.log(data.items.length, "Tracks successfully retrieved.");
+          data.items.forEach((item) => {
+            trackIds.push(item.track.id);
+            trackUris.push(item.track.uri);
+          });
+          console.log(data.items.length, "Categorized tracks successfully retrieved.");
 
           spotifyApi.play( {
             "uris": trackUris   
@@ -268,8 +269,156 @@ export default class App extends Component {
   }
 
 
-  getRecommendations() {
-    spotifyApi.getRecommendations("Rock")
+  retrieveRecommendations(moodGen) {
+    let features = {};
+    // moodGen = "sad"
+
+    switch(moodGen) {
+      case 'angry':
+        features.acousticness=0.0;
+        features.danceability=0.5;
+        features.target_energy=1.0;
+        features.target_loudness=(-10.0);
+        features.max_instrumentalness=1.0;
+        features.min_instrumentalness=0.0;
+        features.max_tempo= 180;
+        features.min_tempo=70;
+        features.target_valence=0.1;
+        break;
+      case 'scared':
+        features.target_danceability=0.2;
+        features.target_energy=0.4;
+        features.target_instrumentalness=0.7;
+        features.max_loudness= (-1.5);
+        features.min_loudness=0.5;
+        features.target_mode=0;
+        features.tempo=100;
+        features.valence=0.4;
+        break;
+      case 'happy':
+        features.target_danceability=1.0;
+        features.target_energy=1.0; 
+        features.max_instrumentalness= 0.6;
+        features.min_instrumentalness=0.1;
+        features.loudness= (-5.5);
+        features.target_mode=1.0;
+        features.target_valence=1.0;
+        break;
+      case 'sad':
+        features.max_acousticness=0.8;
+        features.target_danceability=0.1;
+        features.target_energy=0.1;
+        features.max_instrumentalness= 0.8;
+        features.min_instrumentalness=0.2;
+        features.loudness=(2.5);
+        features.target_mode=0;
+        features.target_valence=0.0;
+        break;
+      case 'surprised':
+        features.max_acousticness=0.4;
+        features.target_danceability=0.7;
+        features.target_energy=0.7;
+        features.max_instrumentalness=0.8;
+        features.min_instrumentalness=0.4;
+        features.loudness= (-6.5);
+        features.target_mode=1;
+        features.valence=0.7;
+        break;
+      case 'neutral':
+        features.acousticness=0.6;
+        features.target_danceability=0.5;
+        features.target_energy=0.5;
+        features.target_instrumentalness=1.0;
+        features.loudness= (-0.5);
+        features.max_tempo=105;
+        features.target_valence=0.5;
+        break;
+      default:
+        features.danceability=0.5;
+        features.energy=0.6;
+        features.target_valence=0.6;      
+        break;
+    }
+
+    console.log(features)
+
+
+    spotifyApi.getAvailableGenreSeeds()
+    .then((genre) => {
+      // console.log(genre.genres);
+      // let _genre = []
+      // switch(moodGen) {
+      //   case 'happy':
+      //     genre.genres[0]
+      //     break;
+
+      // }
+      return genre.genres;
+    })
+    .then((_genre) => {
+      const shuffledGenre = _genre.sort(() => .5 - Math.random());
+      let genres = shuffledGenre.slice(0,5).join(',') ;
+      console.log(genres);
+
+      return spotifyApi.getRecommendations({
+        features,
+        seed_genres: genres,
+        min_popularity: 15,
+        limit: 15
+      })
+    })
+    // .then((data) => {
+    //   let trackID = []
+    //   data.tracks.map( (track) => {
+    //       trackID.push(track.id)
+    //   })
+
+    //    return spotifyApi.getAudioFeaturesForTracks(trackID)
+
+    // })
+    // .then((response) => {
+    //   console.log(response);
+    // })
+    .then((data) => {
+      console.log(data);
+      let trackIds = [];
+      let trackUris = [];
+      let trackName = [];
+      let trackArt = [];
+
+      if(data.tracks) {
+        if(data.tracks.length > 0) {
+          data.tracks.forEach((track) => {
+            trackIds.push(track.id);
+            trackUris.push(track.uri);
+            trackName.push(track.name);
+            trackArt.push(track.album.images[0].url)
+          });
+          console.log(data.tracks.length, "Recommended tracks successfully retrieved.");
+
+          const tracks = {
+           trackIds,
+           trackUris,
+           trackName,
+           trackArt
+          }
+
+          console.log(tracks);
+
+          this.setState( {
+            trackID: trackIds,
+            tracks
+          })
+
+          spotifyApi.play( {
+            "uris": trackUris   
+          })
+          .catch((err) => {
+            console.error(err);
+          });       
+        }
+      }  
+    })
   }
 
   // when we receive a new update from the player
@@ -349,6 +498,8 @@ export default class App extends Component {
       
       // finally, connect!
       this.player.connect();
+    }  else {
+      window.location = 'http://localhost:8888'
     }
   }
 
@@ -401,7 +552,8 @@ export default class App extends Component {
       currTrack,
       playing,
       playlists,
-      playlistID
+      playlistID,
+      trackID
     } = this.state;
 
     return(
@@ -463,7 +615,7 @@ export default class App extends Component {
                 <p>surprised:  {mood.surprised}</p>
                 <p>neutral:   {mood.neutral}</p>  
                 <h2> Your current mood is: {highestPredicted.id} </h2> <br/>
-                </div>  : <Spinner/>
+                </div>  : null
                }
 
             </Col>
@@ -489,6 +641,7 @@ export default class App extends Component {
                 infiniteLoop
                 emulateTouch
                 centerMode
+                centerSlidePercentage={35} 
                 onClickItem={((index) => this.getPlaylistTracks(playlists[index]))}
                 >
                 { playlists ? 
@@ -503,6 +656,7 @@ export default class App extends Component {
             </Col>
           
             <Col xl="3" className="pull-right text-right margin-20">
+            <Button onClick={() => this.retrieveRecommendations(highestPredicted.id)}>Recommend</Button>  
               <Button onClick={() => this.getMoodPlaylist(this.generateMood(highestPredicted.id))}>Reload</Button>
                 <br />
 
@@ -522,7 +676,8 @@ export default class App extends Component {
           </section>
           
 
-          {playlistID ? 
+
+          {playlistID || trackID ? 
             <section id="player">
             <Container fluid> 
             <Row className="row">       
