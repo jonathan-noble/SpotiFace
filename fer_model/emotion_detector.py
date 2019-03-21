@@ -6,7 +6,6 @@ import argparse
 import cv2
 import time
 import datetime
-import json
 
 # construct the argument parse and parse the arguments
 ap = argparse.ArgumentParser()
@@ -33,12 +32,6 @@ now = datetime.datetime.now()
 start = time.time()
 PERIOD_OF_TIME = 5 # 5min
 
-
-def extractLabel(labeldetected):
-    with open("..\spotify_webapp\client\public\label.json", "w") as write_file:
-        json.dump(labeldetected, write_file)
-
-    return print(labeldetected)
 
 
 # keep looping
@@ -69,7 +62,7 @@ while True:
     # ensure at least one face was found before continuing
     if len (rects) > 0:
 
-        #CREATE PREPROCESS_IMAGE FUNCTION HERE!
+
         # determine the largest face area
         rect = sorted (rects, reverse=True,
                        key=lambda x: (x[2] - x[0]) * (x[3] - x[1]))[0]
@@ -84,12 +77,7 @@ while True:
         roi = np.expand_dims (roi, axis=0)
         #END FUNCTION
 
-        # @app.route ("/predict", methods=["GET", "POST", "PATCH", "DELETE"])
-        # message = request.get_json (force=True)
-        # encoded = message['image']
-        # decoded = base64.b64decode (encoded)
-        # image = Image.open (io.BytesIO (decoded))
-        #processed_image=preprocess_image(image, target_size=(224,224))
+
 
         # make a prediction on the ROI, then lookup the class label
         preds = model.predict (roi)[0]  #predict(processed_image)
@@ -133,14 +121,6 @@ if time.time () > start + PERIOD_OF_TIME:
     print("5 seconds are over") #TODO: Can be inside while loop; unsure whether which is better
 
 
-#Save the model
-# serialize model to JSON
-# model_json = model.to_json()
-# with open("model.json", "w") as json_file:
-#     json_file.write(model_json)
-# # serialize weights to HDF5
-# model.save_weights("model.h5")
-# print("Saved model to disk")
 
 
 # cleanup the camera and close any open windows

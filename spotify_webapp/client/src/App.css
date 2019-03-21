@@ -35,6 +35,11 @@ font-weight: 300;
 color: #ffffff;
 }
 
+h4 {
+font-size: 28px;
+color: #242121
+}
+
 p {
 color: #7e7e7e;
 font-size: 25px;
@@ -63,11 +68,19 @@ margin-bottom: 40px !important;
 .margin-50 {
 margin-bottom: 50px !important;
 }
+.margin-50_center {
+  margin-bottom: 50px !important;
+  margin-left: 625px !important;
+}
 .margin-60 {
 margin-bottom: 60px !important;
 }
 .margin-70 {
 margin-bottom: 70px !important;
+}
+.margin-70_center {
+  margin-bottom: 70px !important;
+  margin-left: 100px !important;
 }
 .margin-80 {
 margin-bottom: 80px !important;
@@ -93,8 +106,10 @@ margin-bottom: 150px !important;
 .margin-150_lesstop {
 margin-top: 50px !important;
 margin-left: 130px !important;
-margin-bottom: 150px !important;
+margin-bottom: 500px !important;
 }
+
+
 
 /*-------------------Buttons----------------*/
 .btn {
@@ -214,7 +229,15 @@ margin-bottom: 0px;
   box-shadow: 0 0px 0 rgba(0, 0, 0, 0.0) inset;
 }
 
-
+::-webkit-scrollbar {
+  -webkit-appearance: none;
+  width: 7px;
+}
+::-webkit-scrollbar-thumb {
+  border-radius: 4px;
+  background-color: #f573a0;
+  -webkit-box-shadow: 0 0 1px rgba(255, 255, 255, .5);
+}
 
 
 div, button {
@@ -226,6 +249,40 @@ Col {
 border-style: outset;
 border-color: gray;
 border-width: 2px;
+}
+
+.carousel-items:hover {
+  background-color: rgb(175, 88, 7);
+}
+
+.carousel-items {
+  cursor: pointer;
+}
+
+#tracks {
+  flex: 6;
+  background: rgb(253, 248, 248);
+  overflow-y: scroll;
+}
+
+.track-element {
+  justify-content: space-between;
+  padding: 5px 0;
+}
+
+.track-element > div {
+  display: inherit;
+}
+
+.track-element:hover {
+  background-color: #eee;
+}
+
+#track-container {
+    display: flex;
+    flex-direction: column;
+    height: 75vh;
+    width: 85vh;
 }
 
 
@@ -277,6 +334,16 @@ position: absolute;
 right: 0;
 }
 
+#selectPreference {
+  display: table;
+  height: 100px;
+  width: 100%;
+  text-align: center;
+  background-color: #141616;
+  overflow: hidden;
+}
+
+
 
 #main3 {
 background: #f4f4f4b6;
@@ -292,8 +359,15 @@ position: absolute;
 }
 
 #player {
-    background-color: #141616;
+    background-color: #232424;
     overflow: hidden; 
+}
+
+#player-sticky {
+  /* background-color: #232424;
+  background-position: center;
+  background-attachment: fixed;
+  overflow: hidden; */
 }
 
 .player-btn {

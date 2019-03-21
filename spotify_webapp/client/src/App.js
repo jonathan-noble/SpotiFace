@@ -2,11 +2,13 @@ import React, { Component } from 'react';
 import './App.css';
 import { Container, Row, Col,
    Navbar, NavbarBrand, Nav, NavItem,
-   Button, 
+   Button, Fade, Spinner,
+   ListGroup, ListGroupItem,
    Popover, PopoverBody,
-   Spinner,
    } from 'reactstrap';
 import Sticky from 'react-sticky-el';
+import { faHome, faPlayCircle, faPauseCircle, faStepBackward, faStepForward } from "@fortawesome/free-solid-svg-icons";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import Webcam from 'react-webcam'; 
 import "react-responsive-carousel/lib/styles/carousel.min.css";
 import { Carousel } from 'react-responsive-carousel';
@@ -32,11 +34,11 @@ export default class App extends Component {
       imageData: null,
       mood: { angry: null, scared: null, happy: null, sad: null, surprised: null, neutral: null},
       highestPredicted: {},
+      activateTracks: false,
+      activatePlaylists: false,
       playlists: [],
-      tracks: {},
+      tracks: [],
       playlistID: "",
-      trackID: "",
-      showPlaylistAndCarousel: false,
       popoverOpen: false,
       deviceId: "",
       currTrack: {},
@@ -45,18 +47,18 @@ export default class App extends Component {
       duration: 1,
     }
     // this will later be set by setInterval
-    this.playerCheckInterval = null;
-    this.toggle = this.toggle.bind(this);
+    this.playerCheckInterval = setInterval(() => this.checkForPlayer(), 1200);
+    this.toggleFollow = this.toggleFollow.bind(this);
 
   }
 
   componentDidMount() {
-    this.playerCheckInterval = setInterval(() => this.checkForPlayer(), 1000);
+    // this.playerCheckInterval = setInterval(() => this.checkForPlayer(), 1000);
     this.displayProfile();
   }
 
 
-  toggle() {
+  toggleFollow() {
     this.setState({
       popoverOpen: !this.state.popoverOpen
     });
@@ -82,6 +84,7 @@ export default class App extends Component {
 
       const user = {
         name: _user.display_name,
+        user_id: _user.id,
         pic: _user.images[0].url
       }
 
@@ -190,88 +193,16 @@ export default class App extends Component {
     }
   }
 
-
-  getMoodPlaylist(labelledMood) {
-    console.log(labelledMood);
-    // search playlist that contains whichever mood is labelled
-    // spotifyApi.search(label_from_json, ["playlist", "album", "track"])
-    // search playlist that contains whichever mood is labelled
-    spotifyApi.searchPlaylists(labelledMood) 
-    .then((data) => {
-      if(data.playlists.items) {
-        if(data.playlists.items.length > 0) {
-          console.log('Playlists searched: ', data);
-          
-          let _items = data.playlists.items.sort( () => {
-                      return 10 - (Math.random() * data.playlists.items.length);
-                  })
-
-          const playlistsWrangled = _items
-                  .map( (plist) => ({ 
-                    plist_id: plist.id, 
-                    name: plist.name, 
-                    albumArt: plist.images[0].url 
-                  })).slice(0, 10);
-
-              
-              this.setState({ playlists: playlistsWrangled });   
-                
-                // showPlaylistAndCarousel: !this.state.showPlaylistAndCarousel
-              }
-        }
-     })
-    .catch((err) => {
-      console.error(err);
-    })
-  }
-
-
-  getPlaylistTracks(plist) {
-    let trackIds = [];
-    let trackUris = [];
-    let p_id = plist.plist_id;
-
-    this.setState( {
-      playlistID: p_id
-    })
-
-    spotifyApi.getPlaylistTracks(p_id)
-    .then((data) => {
-      if(data.items) {
-        if(data.items.length > 0) {
-          data.items.forEach((item) => {
-            trackIds.push(item.track.id);
-            trackUris.push(item.track.uri);
-          });
-          console.log(data.items.length, "Categorized tracks successfully retrieved.");
-
-          spotifyApi.play( {
-            "uris": trackUris   
-          })
-          .catch((err) => {
-            console.error(err);
-          });       
-        }
-      }
-    })
-    .catch((err) => {
-      console.error(err);
-    }); 
-  }
-
-    
-  followPlaylist(playlist_id) {
-    console.log("You have followed playlist id: ", playlist_id);
-    spotifyApi.followPlaylist(playlist_id)
-    .catch(e => {
-      console.log(e);
-    });
-  }
-
-
+  
   retrieveRecommendations(moodGen) {
     let features = {};
     // moodGen = "sad"
+
+    this.setState( {
+      activateTracks: true,
+      activatePlaylists: false
+    })
+
 
     switch(moodGen) {
       case 'angry':
@@ -381,44 +312,137 @@ export default class App extends Component {
     // })
     .then((data) => {
       console.log(data);
+
+      const tracks = data.tracks.map( (track) => ({ 
+        track_id: track.id, 
+        track_name: track.name,
+        track_artist: track.artists.map(artist => artist.name).join(", "),
+        track_uri: track.uri, 
+        track_albumArt: track.album.images[0].url 
+      }))
+
+      console.log(tracks.length, "Recommended tracks successfully retrieved.");
+  
+      this.setState({
+         tracks,
+      });   
+
+      return tracks;
+    })
+    .then((track) => {
+      const trackUri = track.map((t) => {
+         return t.track_uri
+      })
+
+       spotifyApi.play( {
+        "uris": trackUri
+      })
+      .catch((err) => {
+        console.error(err);
+      });  
+    })   
+  }
+
+
+  getMoodPlaylist(labelledMood) {
+    console.log(labelledMood);
+    // search playlist that contains whichever mood is labelled
+    // spotifyApi.search(label_from_json, ["playlist", "album", "track"])
+    // search playlist that contains whichever mood is labelled
+    spotifyApi.searchPlaylists(labelledMood) 
+    .then((data) => {
+      if(data.playlists.items) {
+        if(data.playlists.items.length > 0) {
+          console.log('Playlists searched: ', data);
+          
+          let _items = data.playlists.items.sort( () => {
+                      return 10 - (Math.random() * data.playlists.items.length);
+                  })
+
+          const playlists = _items
+                  .map( (plist) => ({ 
+                    plist_id: plist.id, 
+                    plist_name: plist.name, 
+                    plist_albumArt: plist.images[0].url 
+                  })).slice(0, 10);
+
+              
+          this.setState({ 
+            playlists,
+            activatePlaylists: true,
+            activateTracks: false
+          });   
+            
+          }
+        }
+     })
+    .catch((err) => {
+      console.error(err);
+    })
+  }
+
+
+  getPlaylistToPlay(plist) {
+     
+    if(plist != null) {
       let trackIds = [];
       let trackUris = [];
-      let trackName = [];
-      let trackArt = [];
-
-      if(data.tracks) {
-        if(data.tracks.length > 0) {
-          data.tracks.forEach((track) => {
-            trackIds.push(track.id);
-            trackUris.push(track.uri);
-            trackName.push(track.name);
-            trackArt.push(track.album.images[0].url)
-          });
-          console.log(data.tracks.length, "Recommended tracks successfully retrieved.");
-
-          const tracks = {
-           trackIds,
-           trackUris,
-           trackName,
-           trackArt
+      let p_id = plist.plist_id;
+  
+      this.setState( {
+        playlistID: p_id
+      })
+  
+      spotifyApi.getPlaylistTracks(p_id)
+      .then((data) => {
+        if(data.items) {
+          if(data.items.length > 0) {
+            data.items.forEach((item) => {
+              trackIds.push(item.track.id);
+              trackUris.push(item.track.uri);
+            });
+            console.log(data.items.length, "Categorized tracks successfully retrieved.");
+  
+            spotifyApi.play( {
+              "uris": trackUris   
+            })
+            .catch((err) => {
+              console.error(err);
+            });       
           }
-
-          console.log(tracks);
-
-          this.setState( {
-            trackID: trackIds,
-            tracks
-          })
-
-          spotifyApi.play( {
-            "uris": trackUris   
-          })
-          .catch((err) => {
-            console.error(err);
-          });       
         }
-      }  
+      })
+      .catch((err) => {
+        console.error(err);
+      }); 
+    }  
+  }
+
+
+  appendPlaylist(u_id, tracks) {
+    spotifyApi.createPlaylist(u_id, {name: "SpotiFace's Jukebox" })
+    .then((plist) => {
+      return plist.id;
     })
+    .then((plist_id) => {
+
+      const trackUri = tracks.map((t) => {
+        return t.track_uri
+        })
+    return spotifyApi.addTracksToPlaylist(plist_id, trackUri)
+    })
+    .then((data) => {
+      console.log(data);
+    })
+  }
+
+    
+  followPlaylist(playlist_id) {
+    console.log("You have followed playlist id: ", playlist_id);
+    spotifyApi.followPlaylist(playlist_id)
+    .catch(e => {
+      console.log(e);
+    });
   }
 
   // when we receive a new update from the player
@@ -549,19 +573,22 @@ export default class App extends Component {
       imageData,
       mood,
       highestPredicted,
+      activatePlaylists,
+      activateTracks,
       currTrack,
       playing,
       playlists,
-      playlistID,
-      trackID
+      tracks,
+      playlistID
     } = this.state;
+
 
     return(
       <div className="App" >
         {loggedIn ?
         <div>
           <Navbar color="dark" light expand="md">
-          <NavbarBrand>SpotiFace</NavbarBrand>
+          <NavbarBrand><h3>SpotiFace</h3></NavbarBrand>
           <Nav className="ml-auto" navbar>
           <NavItem>
             <img src={user.pic} alt="profile" width="80" />
@@ -571,13 +598,15 @@ export default class App extends Component {
           </NavItem>
           </Nav>
           {/*  <Button href='http://localhost:8888' className="btn btn-secondary btn-lg">Log Out
-              <i className="fa fa-dribbble"></i></Button>*/}
+              <i className="fa fa-dribbble"></i></Button>
+            <Button> <FontAwesomeIcon icon={faHome} /> </Button> */}
           </Navbar>
  
           <section id="main1"> 
           <Container fluid>
           <Row className="row">
             <Col xl="7" className="margin-150">
+            
                 <Webcam
                 audio={false}
                 ref={node => this.webcam = node}
@@ -586,9 +615,12 @@ export default class App extends Component {
                 height={500}
                 videoConstraints={videoConstraints}
                 />
+            
+
+
             </Col>
           
-            <Col xl="3" className="pull-right text-right margin-150">
+            <Col xl="3" className="pull-right text-xs-right margin-150">
                 <h1>Take a photo!</h1>
                 <h3>Let me recommend a playlist<strong><em> for you!</em></strong></h3>
                 <a onClick={this.captureShot} href="#main2" className="btn btn-primary btn-lg">Take a photo<i className="fa fa-cloud-download"></i></a>
@@ -621,19 +653,56 @@ export default class App extends Component {
             </Col>
           
             <Col xl="7" className="margin-150_lesstop">
+
               {imageData ? 
-                <p><img className="main2-img img-responsive pull-right" src={imageData} alt="Snapshot"/></p>
+                <Fade> <p><img className="main2-img img-responsive pull-right" src={imageData} alt="Snapshot"/></p> </Fade>
                 : null}
+
             </Col>          
           </Row>
           </Container>
           </section>
 
+
+        <section id="selectPreference">
+        <Container fluid>
+        <Col xl="12" className="margin-50_center">
+          <Row>
+          <h1>Choose your preference</h1>
+          </Row>
+          <Row className="margin-70_center">
+            <Button className="btn btn-primary btn-lg" onClick={() => this.retrieveRecommendations(highestPredicted.id)}>SpotiFace Jukebox</Button>  
+            <Button className="btn btn-primary btn-lg" onClick={() => this.getMoodPlaylist(this.generateMood(highestPredicted.id))}>Mood Playlists</Button>                  
+          </Row>
+        </Col>
+        </Container>
+        </section>
+
           <section id="main3">
           <Container fluid>
           <Row className="row">
-            <Col sm="7" className="wow fadeInUpBig margin-100">
-              <Carousel
+            <Col sm="7" className="wow fadeInUpBig margin-100">  
+
+            { activateTracks ?
+              <Fade>
+              <ListGroup>
+              <div id="track-container">
+              <div id="tracks">
+               { tracks.map((track) => {
+                  return <ListGroupItem key={track.track_id} className="track-element" > 
+                  <img src={track.track_albumArt} alt="Album Art" width="150" height="150"/>
+                  <h4> {track.track_name}</h4>
+                  <p> {track.track_artist}</p>
+                </ListGroupItem>}) }
+                </div>               
+              </div>
+              </ListGroup>
+              </Fade> : null }
+
+
+              {activatePlaylists ?
+                <Fade>
+                <Carousel
                 width={"85%"}
                 autoPlay 
                 showThumbs={false}
@@ -642,34 +711,41 @@ export default class App extends Component {
                 emulateTouch
                 centerMode
                 centerSlidePercentage={35} 
-                onClickItem={((index) => this.getPlaylistTracks(playlists[index]))}
+                onClickItem={( (index) => this.getPlaylistToPlay(playlists[index]))}
                 >
-                { playlists ? 
-                  playlists.map((plist) => {
+
+                {playlists.map((plist) => {
                     return <div key={plist.plist_id}> 
-                    <img src={plist.albumArt} alt="Album Art"/>
-                    <p className="legend"> {plist.name}</p>
+                    <img className="carousel-items" src={plist.plist_albumArt} alt="Album Art"/>
+                    <p> {plist.plist_name}</p>
                     </div>
-                   }) : <Spinner />
+                   })
                 }
-              </Carousel>    
+              </Carousel> 
+              </Fade> : null   } 
+
             </Col>
           
             <Col xl="3" className="pull-right text-right margin-20">
-            <Button onClick={() => this.retrieveRecommendations(highestPredicted.id)}>Recommend</Button>  
-              <Button onClick={() => this.getMoodPlaylist(this.generateMood(highestPredicted.id))}>Reload</Button>
-                <br />
-
-              { playlistID ? <Button onClick={() => this.followPlaylist(playlistID)}>Follow Playlist</Button>
+            { activatePlaylists ?           
+               (playlistID ? <Fade><Button onClick={() => this.followPlaylist(playlistID)}>Follow Playlist</Button> </Fade>
                 :  <div>
+                <Fade>
                 <Button id="Popover1" type="button">
                   Follow Playlist
-                </Button>
-                <Popover placement="bottom" isOpen={this.state.popoverOpen} target="Popover1" toggle={this.toggle}>
+                </Button> </Fade>
+                <Popover placement="bottom" isOpen={this.state.popoverOpen} target="Popover1" toggle={this.toggleFollow}>
                   <PopoverBody>Choose a playlist from the carousel first!</PopoverBody>
                 </Popover>
-                </div>
-              } 
+                </div>)  : null
+            } 
+
+            { activateTracks ?
+              <Fade>
+              <Button onClick={() => this.appendPlaylist(user.user_id, tracks)}>Add to Library</Button>
+              </Fade>  
+              : null
+            }
             </Col>
           </Row>
           </Container>
@@ -677,10 +753,13 @@ export default class App extends Component {
           
 
 
-          {playlistID || trackID ? 
+          {playlistID || activateTracks ? 
+
             <section id="player">
             <Container fluid> 
+            <Fade>
             <Row className="row">       
+
                 <Col sm="4" className="margin-10" >  
                   { currTrack.albumImg ? 
                     <div>
@@ -692,23 +771,28 @@ export default class App extends Component {
                   }
                 </Col>   
                 <Col sm="6">
-                <Sticky mode="bottom" className="player">
-                  <Button className="player-btn" onClick={() => this.onPrevClick()}>Previous</Button>
-                  <Button className="player-btn" onClick={() => this.onPlayClick()}>{playing ? "Pause" : "Play"}<i className="fa fa-step-forward"></i></Button>
-                  <Button className="player-btn" onClick={() => this.onNextClick()}>Next</Button>  
+                <Sticky mode="bottom" id="player-sticky" className="margin-10">
+                
+
+                  <Button className="player-btn" onClick={() => this.onPrevClick()}><FontAwesomeIcon icon={faStepBackward}/></Button>
+                  <Button className="player-btn" onClick={() => this.onPlayClick()}>{playing ? <FontAwesomeIcon icon={faPauseCircle}/>: <FontAwesomeIcon icon={faPlayCircle}/>} </Button>
+                  <Button className="player-btn" onClick={() => this.onNextClick()}><FontAwesomeIcon icon={faStepForward}/></Button>  
                   </Sticky>
                 </Col>
             </Row>
+            </Fade> 
             </Container>    
-            </section> : null 
+            </section>
+: null 
            }
 
 
         </div>  :          
           <html>
           <body>
+          <h1>Your token expired!</h1>
           <Button onClick={() => { window.location = 'http://localhost:8888' }} 
-          style={{ position: "sticky", padding: '25px', 'font-size': '50px', 'margin-left': '40%'}}>Sign in with Spotify</Button>
+          style={{ position: "sticky", padding: '25px', 'font-size': '50px', 'margin-left': '40%'}}>Sign back in</Button>
           {/* TODO: use the proper URL for the second condition of an implemented ternary operator once established */}
           </body>
 
