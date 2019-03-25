@@ -34,7 +34,7 @@ valGen = hdf5datasetgenerator.HDF5DatasetGenerator(config.VAL_HDF5, config.BATCH
 if args["model"] is None:
     print("[INFO] compiling model...")
     model = emotionvggnet.EmotionVGGNet.build(width=48, height=48, depth=1, classes=config.NUM_CLASSES)
-    opt = Adam(lr=1e-3)
+    opt = Adam(lr=1e-4)
     model.compile(loss="categorical_crossentropy", optimizer=opt, metrics=["accuracy"])
 
 # otherwise, load the checkpoint from disk
@@ -46,7 +46,7 @@ else:
     print ("[INFO] old learning rate: {}".format (
 
     K.get_value (model.optimizer.lr)))
-    K.set_value (model.optimizer.lr, 1e-3)
+    K.set_value (model.optimizer.lr, 1e-4)
     print ("[INFO] new learning rate: {}".format (K.get_value (model.optimizer.lr)))
 
  # construct the set of callbacks

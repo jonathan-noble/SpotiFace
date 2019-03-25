@@ -41,9 +41,11 @@ color: #242121
 }
 
 p {
-color: #7e7e7e;
+color: #5e8892;
 font-size: 25px;
 }
+
+
 
 /*-------------------Margins----------------*/
 .margin-0 {
@@ -72,6 +74,11 @@ margin-bottom: 50px !important;
   margin-bottom: 50px !important;
   margin-left: 625px !important;
 }
+
+.margin-photo {
+  margin-left: 320px !important;
+}
+
 .margin-60 {
 margin-bottom: 60px !important;
 }
@@ -109,6 +116,21 @@ margin-left: 130px !important;
 margin-bottom: 500px !important;
 }
 
+.round10 {
+  border-radius: 10px;
+}
+
+.round10top {
+  border-radius: 10px 10px 0px 0px;
+}
+
+.round10bot {
+  border-radius: 0px 0px 10px 10px;
+}
+
+.round15 {
+  border-radius: 15px;
+}
 
 
 /*-------------------Buttons----------------*/
@@ -155,13 +177,12 @@ transition: all 0.35s ease-in-out;
 
 .btn-secondary {
 background-color: transparent;
-border-color: #4eacdd;
-color: #4eacdd;
+border-color: #272e31;
 }
 
 .btn-secondary:hover, .btn-secondary:focus, .btn-secondary:active, .btn-secondary.active, .open .dropdown-toggle.btn-secondary {
-background-color: #4eacdd;
-border-color: #4eacdd;
+background-color: #272e31;
+border-color: #272e31;
 color: #ffffff;
 
 -webkit-transition: all 0.35s ease-in-out;
@@ -261,42 +282,63 @@ border-width: 2px;
 
 #tracks {
   flex: 6;
-  background: rgb(253, 248, 248);
+  background: #d8d3d1;
   overflow-y: scroll;
 }
 
 .track-element {
   justify-content: space-between;
-  padding: 5px 0;
+  padding: 5px 0; 
+  /* margin-left:150px; */
 }
+
+/* .track-element >img {
+  padding: 5px 0;
+  margin-left:150px;
+}
+
+.track-element >h4 {
+  padding: 5px 0;
+  margin-left:150px;
+}
+
+.track-element >p {
+  padding: 5px 0;
+  margin-left:150px;
+}
+ */
+
 
 .track-element > div {
   display: inherit;
 }
 
 .track-element:hover {
-  background-color: #eee;
+  background-color: #eb9595;
 }
 
 #track-container {
     display: flex;
-    flex-direction: column;
+    flex-direction: row;
+    cursor: pointer;
     height: 75vh;
     width: 85vh;
 }
 
-
-/* ==========================================================================
- Main styles
- ========================================================================== */
-
-
-.cameraOutput {
-  width: 500px;
-  height: 375px;
-  background-color: #666;
+.jumbo {
+  background-color: #ffffff;
+  overflow: hidden;
 }
 
+.jumbo-txt {
+  color: #181b1b;
+}
+
+
+.webcam-bg {
+  border: solid 2px;
+  border-color: #ffffff;
+}
 
 textarea {
 font-family: monospace;
@@ -306,6 +348,10 @@ width: 100%;
 }
 
 
+
+/* ==========================================================================
+ Main styles
+ ========================================================================== */
 
 #main1 {
 background-color: #141616;
@@ -344,9 +390,8 @@ right: 0;
 }
 
 
-
 #main3 {
-background: #f4f4f4b6;
+background: #ffffff;
 padding-top: 0px;
 overflow: hidden;
 }

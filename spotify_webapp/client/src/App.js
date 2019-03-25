@@ -2,20 +2,24 @@ import React, { Component } from 'react';
 import './App.css';
 import { Container, Row, Col,
    Navbar, NavbarBrand, Nav, NavItem,
-   Button, Fade, Spinner,
-   ListGroup, ListGroupItem,
+   Button, Fade, Spinner, Alert,
+   ListGroup, ListGroupItem, Jumbotron,
    Popover, PopoverBody,
    } from 'reactstrap';
-import Sticky from 'react-sticky-el';
-import { faHome, faPlayCircle, faPauseCircle, faStepBackward, faStepForward } from "@fortawesome/free-solid-svg-icons";
+import { faCamera,
+        faPlayCircle, faPauseCircle, faStepBackward, faStepForward 
+      } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import Sticky from 'react-sticky-el';
 import Webcam from 'react-webcam'; 
 import "react-responsive-carousel/lib/styles/carousel.min.css";
 import { Carousel } from 'react-responsive-carousel';
 import SpotifyWebApi from 'spotify-web-api-js';
+
 const spotifyApi = new SpotifyWebApi();
 
 window.onSpotifyWebPlaybackSDKReady = () => {};
+
 
 export default class App extends Component {  
 
@@ -36,10 +40,14 @@ export default class App extends Component {
       highestPredicted: {},
       activateTracks: false,
       activatePlaylists: false,
+      generatedMood: '',
+      genres: [],
+      feature: [],
       playlists: [],
       tracks: [],
       playlistID: "",
       popoverOpen: false,
+      alertOpen: false,
       deviceId: "",
       currTrack: {},
       playing: false,
@@ -49,14 +57,14 @@ export default class App extends Component {
     // this will later be set by setInterval
     this.playerCheckInterval = setInterval(() => this.checkForPlayer(), 1200);
     this.toggleFollow = this.toggleFollow.bind(this);
-
   }
 
   componentDidMount() {
     // this.playerCheckInterval = setInterval(() => this.checkForPlayer(), 1000);
-    this.displayProfile();
-  }
+    this.getCurrentUser();
 
+
+  }
 
   toggleFollow() {
     this.setState({
@@ -77,7 +85,7 @@ export default class App extends Component {
   }
 
 
-  displayProfile() {
+  getCurrentUser() {
     spotifyApi.getMe()
     .then((_user) => {
       console.log(_user);
@@ -85,7 +93,8 @@ export default class App extends Component {
       const user = {
         name: _user.display_name,
         user_id: _user.id,
-        pic: _user.images[0].url
+        pic: _user.images[0] ? _user.images[0].url : null,
+        product: _user.product
       }
 
       this.setState({
@@ -147,7 +156,7 @@ export default class App extends Component {
         return prev.predict > curr.predict ? prev : curr;
         });
 
-      let moodDetected = this.generateMood(highestPred.id); // function where it will return a randomized string from a set of "related" and or "associated" mood words 
+      // let moodDetected = this.generateMood(highestPred.id); // function where it will return a randomized string from a set of "related" and or "associated" mood words 
 
       console.log(highestPred.id, arrayOfPredictions[0].predict); 
 
@@ -155,7 +164,7 @@ export default class App extends Component {
         highestPredicted: highestPred
       })
 
-      this.getMoodPlaylist(moodDetected);
+      // this.getMoodPlaylist(moodDetected);
   })
   .catch(error => this.setState({ error,  mood: { angry: null, scared: null, happy: null, sad: null, surprised: null, neutral: null }, }))
   }
@@ -271,7 +280,17 @@ export default class App extends Component {
         break;
     }
 
-    console.log(features)
+    console.log(features);
+
+    const keys = Object.keys(features);
+    // projects data.prediction into an array of object key=prediction pairs
+    const feature = keys.map(key => ({
+      id: key, 
+      val: features[key]
+      })
+    );
+  
+    console.log(feature);
 
 
     spotifyApi.getAvailableGenreSeeds()
@@ -290,6 +309,11 @@ export default class App extends Component {
       const shuffledGenre = _genre.sort(() => .5 - Math.random());
       let genres = shuffledGenre.slice(0,5).join(',') ;
       console.log(genres);
+
+      this.setState({
+        genres,
+        feature
+      })
 
       return spotifyApi.getRecommendations({
         features,
@@ -344,12 +368,15 @@ export default class App extends Component {
   }
 
 
-  getMoodPlaylist(labelledMood) {
-    console.log(labelledMood);
+  getMoodPlaylist(generatedMood) {
+    console.log(generatedMood);
+
+    this.setState({
+      generatedMood
+    })
+
     // search playlist that contains whichever mood is labelled
-    // spotifyApi.search(label_from_json, ["playlist", "album", "track"])
-    // search playlist that contains whichever mood is labelled
-    spotifyApi.searchPlaylists(labelledMood) 
+    spotifyApi.searchPlaylists(generatedMood) 
     .then((data) => {
       if(data.playlists.items) {
         if(data.playlists.items.length > 0) {
@@ -381,6 +408,15 @@ export default class App extends Component {
     })
   }
 
+  getTracksToPlay(track_uri) {
+    let trackURI = [];
+    trackURI.push(track_uri);
+    console.log(trackURI);
+
+    spotifyApi.play( {
+      "uris": trackURI
+    })
+  }
 
   getPlaylistToPlay(plist) {
      
@@ -434,6 +470,10 @@ export default class App extends Component {
     .then((data) => {
       console.log(data);
     })
+
+    this.setState({
+      alertOpen: !this.state.alertOpen
+    })
   }
 
     
@@ -443,6 +483,10 @@ export default class App extends Component {
     .catch(e => {
       console.log(e);
     });
+
+    this.setState({
+      alertOpen: !this.state.alertOpen
+    })
   }
 
   // when we receive a new update from the player
@@ -542,21 +586,11 @@ export default class App extends Component {
   }
 
   transferPlaybackHere() {
-    const { deviceId, _token } = this.state;
-    // https://beta.developer.spotify.com/documentation/web-api/reference/player/transfer-a-users-playback/
-    fetch("https://api.spotify.com/v1/me/player", {
-      method: "PUT",
-      headers: {
-        authorization: `Bearer ${_token}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        "device_ids": [ deviceId ],
-        // true: start playing music if it was paused on the other device
-        // false: paused if paused on other device, start playing music otherwise
-        "play": false,
-      }),
-    });
+    const { deviceId } = this.state;
+    spotifyApi.transferMyPlayback(
+      [deviceId],
+      {"play": false}
+      )
   }
   
 //render the objects
@@ -575,10 +609,15 @@ export default class App extends Component {
       highestPredicted,
       activatePlaylists,
       activateTracks,
+      generatedMood,
+      genres,
+      feature,
       currTrack,
       playing,
       playlists,
       tracks,
+      popoverOpen,
+      alertOpen,
       playlistID
     } = this.state;
 
@@ -587,27 +626,28 @@ export default class App extends Component {
       <div className="App" >
         {loggedIn ?
         <div>
-          <Navbar color="dark" light expand="md">
-          <NavbarBrand><h3>SpotiFace</h3></NavbarBrand>
-          <Nav className="ml-auto" navbar>
+          <Navbar className="round10top" color="dark" light expand="md">
+          <NavbarBrand href="http://localhost:8888"><h3>SpotiFace</h3></NavbarBrand>
+          <Nav className="ml-auto" navbar justified>
           <NavItem>
-            <img src={user.pic} alt="profile" width="80" />
-          </NavItem>
+            {  user.pic ?
+              <img className="round10" src={user.pic} alt="profile" width="80" />
+              :  null }
+          </NavItem> 
           <NavItem>
-          <p className="legend"> {user.name} </p>
+           <p className="white">{user.name} </p> 
           </NavItem>
           </Nav>
-          {/*  <Button href='http://localhost:8888' className="btn btn-secondary btn-lg">Log Out
-              <i className="fa fa-dribbble"></i></Button>
-            <Button> <FontAwesomeIcon icon={faHome} /> </Button> */}
           </Navbar>
- 
+
+
           <section id="main1"> 
           <Container fluid>
           <Row className="row">
             <Col xl="7" className="margin-150">
-            
+             
                 <Webcam
+                className="webcam-bg round15"
                 audio={false}
                 ref={node => this.webcam = node}
                 screenshotFormat="image/jpeg"
@@ -615,15 +655,13 @@ export default class App extends Component {
                 height={500}
                 videoConstraints={videoConstraints}
                 />
-            
-
 
             </Col>
           
-            <Col xl="3" className="pull-right text-xs-right margin-150">
-                <h1>Take a photo!</h1>
-                <h3>Let me recommend a playlist<strong><em> for you!</em></strong></h3>
-                <a onClick={this.captureShot} href="#main2" className="btn btn-primary btn-lg">Take a photo<i className="fa fa-cloud-download"></i></a>
+            <Col xl="4" className="pull-right margin-150">
+                <h1>Gewon!</h1>
+                <h3>Let me recommend a playlist for<strong><em> you.</em></strong></h3>
+                <Button color="primary" onClick={this.captureShot} className="margin-photo" href="#main2" size="lg">Take a photo <FontAwesomeIcon icon={faCamera}/></Button> 
             </Col>
           </Row>
           </Container>
@@ -636,7 +674,7 @@ export default class App extends Component {
             <Col sm="3" className="pull-left text-left margin-100">
    { /*  
                 <div>{mood.map((item) => (<div>{item.desc + ' ' + item.expense}</div>))}</div>    */ } 
-               <a href="#main1" className="btn btn-secondary btn-lg">One more time?<i className="fa fa-envelope"></i></a>  
+               <Button outline size="lg" className="btn-secondary" href="#main1" >One more time?</Button>
                
                 { mood.angry ?
                 <div>
@@ -655,7 +693,7 @@ export default class App extends Component {
             <Col xl="7" className="margin-150_lesstop">
 
               {imageData ? 
-                <Fade> <p><img className="main2-img img-responsive pull-right" src={imageData} alt="Snapshot"/></p> </Fade>
+                <Fade> <p><img className="main2-img img-responsive pull-right round15" src={imageData} alt="Snapshot"/></p> </Fade>
                 : null}
 
             </Col>          
@@ -671,8 +709,8 @@ export default class App extends Component {
           <h1>Choose your preference</h1>
           </Row>
           <Row className="margin-70_center">
-            <Button className="btn btn-primary btn-lg" onClick={() => this.retrieveRecommendations(highestPredicted.id)}>SpotiFace Jukebox</Button>  
-            <Button className="btn btn-primary btn-lg" onClick={() => this.getMoodPlaylist(this.generateMood(highestPredicted.id))}>Mood Playlists</Button>                  
+            <Button size="lg" color="primary" onClick={() => this.retrieveRecommendations(highestPredicted.id)}>SpotiFace Jukebox</Button>  
+            <Button size="lg" color="primary" onClick={() => this.getMoodPlaylist(this.generateMood(highestPredicted.id))}>Mood Playlists</Button>                  
           </Row>
         </Col>
         </Container>
@@ -689,7 +727,7 @@ export default class App extends Component {
               <div id="track-container">
               <div id="tracks">
                { tracks.map((track) => {
-                  return <ListGroupItem key={track.track_id} className="track-element" > 
+                  return <ListGroupItem onClick={() => this.getTracksToPlay(track.track_uri)} key={track.track_id} className="track-element"> 
                   <img src={track.track_albumArt} alt="Album Art" width="150" height="150"/>
                   <h4> {track.track_name}</h4>
                   <p> {track.track_artist}</p>
@@ -697,6 +735,9 @@ export default class App extends Component {
                 </div>               
               </div>
               </ListGroup>
+              <Button outline size="lg" className="btn-secondary" onClick={() => this.appendPlaylist(user.user_id, tracks)}>Add to Library</Button>
+
+              {/*alertOpen ? <Fade in={alertOpen}><Alert color="success">You have added this playlist in your library! </Alert> </Fade>: null*/}
               </Fade> : null }
 
 
@@ -722,30 +763,58 @@ export default class App extends Component {
                    })
                 }
               </Carousel> 
-              </Fade> : null   } 
+              {playlistID ? 
+                <Button outline size="lg" className="btn-secondary" onClick={() => this.followPlaylist(playlistID)}>Follow Playlist</Button>  
+                :  <div>
+                <Button outline size="lg" className="btn-secondary" id="Popover1" type="button">
+                  Follow Playlist
+                </Button>
+                <Popover placement="bottom" isOpen={popoverOpen} target="Popover1" toggle={this.toggleFollow}>
+                  <PopoverBody>Choose a playlist from the carousel first!</PopoverBody>
+                </Popover>
+                </div>}
+              </Fade> 
+              : null   } 
 
             </Col>
           
-            <Col xl="3" className="pull-right text-right margin-20">
-            { activatePlaylists ?           
-               (playlistID ? <Fade><Button onClick={() => this.followPlaylist(playlistID)}>Follow Playlist</Button> </Fade>
-                :  <div>
-                <Fade>
-                <Button id="Popover1" type="button">
-                  Follow Playlist
-                </Button> </Fade>
-                <Popover placement="bottom" isOpen={this.state.popoverOpen} target="Popover1" toggle={this.toggleFollow}>
-                  <PopoverBody>Choose a playlist from the carousel first!</PopoverBody>
-                </Popover>
-                </div>)  : null
-            } 
+            <Col xl="4" className="margin-20">
 
             { activateTracks ?
               <Fade>
-              <Button onClick={() => this.appendPlaylist(user.user_id, tracks)}>Add to Library</Button>
+              <Jumbotron fluid className="jumbo pull-right text-right">
+              <Container fluid>
+                <h1 className="display-3 jumbo-txt">SpotiFace Jukebox</h1>
+                <p className="lead jumbo-txt">Tracks based on tuned track attributes according to your mood</p>
+                <hr className="my-2" />
+                 {feature.map((_feature) => {
+                   return <div key={_feature.id}>
+                      <p className="jumbo-txt"> {_feature.id}:  {_feature.val} </p>
+                   </div>
+                 })}
+
+                <hr className="my-2" />
+                <p className="jumbo-txt">Genres: {genres} </p>
+              </Container>
+              </Jumbotron>
               </Fade>  
               : null
             }
+
+            { activatePlaylists ?     
+              <Fade>
+              <Jumbotron fluid className="jumbo pull-right text-right">
+              <Container fluid>
+                <h1 className="display-3 jumbo-txt">Mood Playlists</h1>
+                <p className="lead jumbo-txt">Public-created playlists that suits your mood</p>
+                <hr className="my-2" />
+                <p className="jumbo-txt">The category is based on: {generatedMood}</p>
+              </Container>
+              </Jumbotron>
+              </Fade>
+             : null
+            } 
+
             </Col>
           </Row>
           </Container>
@@ -753,9 +822,8 @@ export default class App extends Component {
           
 
 
-          {playlistID || activateTracks ? 
-
-            <section id="player">
+          {user.product==="premium" && (playlistID || activateTracks) ? 
+            <section className="round10bot" id="player">
             <Container fluid> 
             <Fade>
             <Row className="row">       
@@ -767,16 +835,16 @@ export default class App extends Component {
                     <h3>{currTrack.trackName}</h3>
                     <p>{currTrack.artistName}</p> 
                     </div>
-                    : <Spinner/>
+                    : null
                   }
                 </Col>   
                 <Col sm="6">
                 <Sticky mode="bottom" id="player-sticky" className="margin-10">
-                
-
-                  <Button className="player-btn" onClick={() => this.onPrevClick()}><FontAwesomeIcon icon={faStepBackward}/></Button>
-                  <Button className="player-btn" onClick={() => this.onPlayClick()}>{playing ? <FontAwesomeIcon icon={faPauseCircle}/>: <FontAwesomeIcon icon={faPlayCircle}/>} </Button>
-                  <Button className="player-btn" onClick={() => this.onNextClick()}><FontAwesomeIcon icon={faStepForward}/></Button>  
+                  <Fade>
+                  <Button active size="lg" color="secondary" className="player-btn" onClick={() => this.onPrevClick()}><FontAwesomeIcon icon={faStepBackward}/></Button>
+                  <Button active size="lg" color="secondary" className="player-btn" onClick={() => this.onPlayClick()}>{playing ? <FontAwesomeIcon icon={faPauseCircle}/>: <FontAwesomeIcon icon={faPlayCircle}/>} </Button>
+                  <Button active size="lg" color="secondary" className="player-btn" onClick={() => this.onNextClick()}><FontAwesomeIcon icon={faStepForward}/></Button>  
+                  </Fade>
                   </Sticky>
                 </Col>
             </Row>

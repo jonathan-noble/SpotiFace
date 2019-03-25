@@ -20,7 +20,7 @@ def my_index():
 
 def get_model():
     global model
-    model = load_model ("./checkpoints/epoch_95.hdf5")
+    model = load_model ("./checkpoints/epoch_60.hdf5")
     global graph
     graph = tf.get_default_graph ()
     print(" * MODEL LOADED ! ")

@@ -116,11 +116,6 @@ while True:
         break
 
 
-if time.time () > start + PERIOD_OF_TIME:
-    extractLabel(label)
-    print("5 seconds are over") #TODO: Can be inside while loop; unsure whether which is better
-
-
 
 
 # cleanup the camera and close any open windows
