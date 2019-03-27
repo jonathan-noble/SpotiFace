@@ -11,12 +11,11 @@ from PIL import Image
 import base64
 
 
-app = Flask(__name__) #, static_folder="./static/react", template_folder="./static")
+app = Flask(__name__)
 
 @app.route("/")
 def my_index():
-    # spotify_btn = url_for('static', filename='spotify.png')
-    return flask.render_template("index.html") # image_url=spotify_btn
+    return flask.render_template("index.html")
 
 def get_model():
     global model

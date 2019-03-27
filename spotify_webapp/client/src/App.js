@@ -40,11 +40,13 @@ export default class App extends Component {
       highestPredicted: {},
       activateTracks: false,
       activatePlaylists: false,
+      activatePersonalized: false,
       generatedMood: '',
       genres: [],
       feature: [],
       playlists: [],
       tracks: [],
+      personalTracks: [],
       playlistID: "",
       popoverOpen: false,
       alertOpen: false,
@@ -56,7 +58,6 @@ export default class App extends Component {
     }
     // this will later be set by setInterval
     this.playerCheckInterval = setInterval(() => this.checkForPlayer(), 1200);
-    this.toggleFollow = this.toggleFollow.bind(this);
   }
 
   componentDidMount() {
@@ -205,11 +206,11 @@ export default class App extends Component {
   
   retrieveRecommendations(moodGen) {
     let features = {};
-    // moodGen = "sad"
 
     this.setState( {
       activateTracks: true,
-      activatePlaylists: false
+      activatePlaylists: false,
+      activatePersonalized: false
     })
 
 
@@ -274,9 +275,9 @@ export default class App extends Component {
         features.target_valence=0.5;
         break;
       default:
-        features.danceability=0.5;
-        features.energy=0.6;
-        features.target_valence=0.6;      
+        features.danceability=1.0;
+        features.energy=1.0;
+        features.target_valence=1.0;      
         break;
     }
 
@@ -289,8 +290,6 @@ export default class App extends Component {
       val: features[key]
       })
     );
-  
-    console.log(feature);
 
 
     spotifyApi.getAvailableGenreSeeds()
@@ -303,7 +302,8 @@ export default class App extends Component {
       //     break;
 
       // }
-      return genre.genres;
+      console.log(genre.genres[0])
+      return genre.genres; // genre.genres[0];
     })
     .then((_genre) => {
       const shuffledGenre = _genre.sort(() => .5 - Math.random());
@@ -323,7 +323,7 @@ export default class App extends Component {
       })
     })
     // .then((data) => {
-    //   let trackID = []
+    //   let trackID = [];
     //   data.tracks.map( (track) => {
     //       trackID.push(track.id)
     //   })
@@ -372,7 +372,10 @@ export default class App extends Component {
     console.log(generatedMood);
 
     this.setState({
-      generatedMood
+      generatedMood,
+      activatePlaylists: true,
+      activateTracks: false,
+      activatePersonalized: false
     })
 
     // search playlist that contains whichever mood is labelled
@@ -395,9 +398,7 @@ export default class App extends Component {
 
               
           this.setState({ 
-            playlists,
-            activatePlaylists: true,
-            activateTracks: false
+            playlists
           });   
             
           }
@@ -406,6 +407,133 @@ export default class App extends Component {
     .catch((err) => {
       console.error(err);
     })
+  }
+
+  getTopArtist(moodGen) {
+    let features = [];
+    
+
+    this.setState({
+      activatePlaylists: false,
+      activateTracks: false,
+      activatePersonalized: true
+    })
+
+
+    switch(moodGen) {
+      case 'angry':
+        features.acousticness=0.0;
+        features.danceability=0.5;
+        features.target_energy=1.0;
+        features.target_loudness=(-10.0);
+        features.max_instrumentalness=1.0;
+        features.min_instrumentalness=0.0;
+        features.max_tempo= 180;
+        features.min_tempo=70;
+        features.target_valence=0.1;
+        break;
+      case 'scared':
+        features.target_danceability=0.2;
+        features.target_energy=0.4;
+        features.target_instrumentalness=0.7;
+        features.max_loudness= (-1.5);
+        features.min_loudness=0.5;
+        features.target_mode=0;
+        features.tempo=100;
+        features.valence=0.4;
+        break;
+      case 'happy':
+        features.target_danceability=1.0;
+        features.target_energy=1.0; 
+        features.max_instrumentalness= 0.6;
+        features.min_instrumentalness=0.1;
+        features.loudness= (-5.5);
+        features.target_mode=1.0;
+        features.target_valence=1.0;
+        break;
+      case 'sad':
+        features.max_acousticness=0.8;
+        features.target_danceability=0.1;
+        features.target_energy=0.1;
+        features.max_instrumentalness= 0.8;
+        features.min_instrumentalness=0.2;
+        features.loudness=(2.5);
+        features.target_mode=0;
+        features.target_valence=0.0;
+        break;
+      case 'surprised':
+        features.max_acousticness=0.4;
+        features.target_danceability=0.7;
+        features.target_energy=0.7;
+        features.max_instrumentalness=0.8;
+        features.min_instrumentalness=0.4;
+        features.loudness= (-6.5);
+        features.target_mode=1;
+        features.valence=0.7;
+        break;
+      case 'neutral':
+        features.acousticness=0.6;
+        features.target_danceability=0.5;
+        features.target_energy=0.5;
+        features.target_instrumentalness=1.0;
+        features.loudness= (-0.5);
+        features.max_tempo=105;
+        features.target_valence=0.5;
+        break;
+      default:
+        features.danceability=1.0;
+        features.energy=1.0;
+        features.target_valence=1.0;      
+        break;
+    }
+
+    spotifyApi.getMyTopArtists({limit: 5})
+    .then((artists) => {
+      console.log(artists);
+      return artists;
+    })
+    .then((_artist) => {
+      let artistID = _artist.items.map((artist) => {
+        return artist.id;
+      })
+
+      return spotifyApi.getRecommendations({
+        features,
+        seed_artists: artistID,
+        limit: 15
+      })
+    })
+    .then((data) => {
+      console.log(data);
+
+      const personalTracks = data.tracks.map( (track) => ({ 
+        track_id: track.id, 
+        track_name: track.name,
+        track_artist: track.artists.map(artist => artist.name).join(", "),
+        track_uri: track.uri, 
+        track_albumArt: track.album.images[0].url 
+      }))
+
+      console.log(personalTracks.length, "Recommended tracks successfully retrieved.");
+  
+      this.setState({
+        personalTracks,
+      });   
+
+      return personalTracks;
+    })
+    .then((track) => {
+      const trackUri = track.map((t) => {
+         return t.track_uri
+      })
+
+       spotifyApi.play( {
+        "uris": trackUri
+      })
+      .catch((err) => {
+        console.error(err);
+      });  
+    })   
   }
 
   getTracksToPlay(track_uri) {
@@ -609,6 +737,7 @@ export default class App extends Component {
       highestPredicted,
       activatePlaylists,
       activateTracks,
+      activatePersonalized,
       generatedMood,
       genres,
       feature,
@@ -616,6 +745,7 @@ export default class App extends Component {
       playing,
       playlists,
       tracks,
+      personalTracks,
       popoverOpen,
       alertOpen,
       playlistID
@@ -627,7 +757,7 @@ export default class App extends Component {
         {loggedIn ?
         <div>
           <Navbar className="round10top" color="dark" light expand="md">
-          <NavbarBrand href="http://localhost:8888"><h3>SpotiFace</h3></NavbarBrand>
+          <NavbarBrand href="http://localhost:8888"><h1>SpotiFace</h1></NavbarBrand>
           <Nav className="ml-auto" navbar justified>
           <NavItem>
             {  user.pic ?
@@ -656,12 +786,12 @@ export default class App extends Component {
                 videoConstraints={videoConstraints}
                 />
 
+              <Button color="primary" onClick={this.captureShot} className="camera-btn" href="#main2" size="lg"><FontAwesomeIcon icon={faCamera}/></Button>     
             </Col>
           
             <Col xl="4" className="pull-right margin-150">
-                <h1>Gewon!</h1>
-                <h3>Let me recommend a playlist for<strong><em> you.</em></strong></h3>
-                <Button color="primary" onClick={this.captureShot} className="margin-photo" href="#main2" size="lg">Take a photo <FontAwesomeIcon icon={faCamera}/></Button> 
+                <h1>Give it a go!</h1>
+                <h3>Let SpotiFace recommend a playlist for<strong><em> you</em></strong>.</h3>
             </Col>
           </Row>
           </Container>
@@ -677,15 +807,16 @@ export default class App extends Component {
                <Button outline size="lg" className="btn-secondary" href="#main1" >One more time?</Button>
                
                 { mood.angry ?
-                <div>
+                <Fade>
+                <ol> </ol>
+                <h2> Your current mood is: {highestPredicted.id} </h2> <br/>
                 <p>angry: {mood.angry} </p>
                 <p>scared:   {mood.scared} </p>
                 <p>happy:    {mood.happy}</p>
                 <p>sad:     {mood.sad}</p>
                 <p>surprised:  {mood.surprised}</p>
                 <p>neutral:   {mood.neutral}</p>  
-                <h2> Your current mood is: {highestPredicted.id} </h2> <br/>
-                </div>  : null
+                </Fade>  : null
                }
 
             </Col>
@@ -710,7 +841,8 @@ export default class App extends Component {
           </Row>
           <Row className="margin-70_center">
             <Button size="lg" color="primary" onClick={() => this.retrieveRecommendations(highestPredicted.id)}>SpotiFace Jukebox</Button>  
-            <Button size="lg" color="primary" onClick={() => this.getMoodPlaylist(this.generateMood(highestPredicted.id))}>Mood Playlists</Button>                  
+            <Button size="lg" color="primary" onClick={() => this.getMoodPlaylist(this.generateMood(highestPredicted.id))}>Mood Playlists</Button>  
+            <Button size="lg" color="primary" onClick={() => this.getTopArtist(highestPredicted.id)}>Personalized Tracks</Button>                                 
           </Row>
         </Col>
         </Container>
@@ -736,6 +868,7 @@ export default class App extends Component {
               </div>
               </ListGroup>
               <Button outline size="lg" className="btn-secondary" onClick={() => this.appendPlaylist(user.user_id, tracks)}>Add to Library</Button>
+              <Button outline size="lg" className="btn-secondary" onClick={() => this.retrieveRecommendations(highestPredicted.id)}>Reload</Button>  
 
               {/*alertOpen ? <Fade in={alertOpen}><Alert color="success">You have added this playlist in your library! </Alert> </Fade>: null*/}
               </Fade> : null }
@@ -764,7 +897,10 @@ export default class App extends Component {
                 }
               </Carousel> 
               {playlistID ? 
-                <Button outline size="lg" className="btn-secondary" onClick={() => this.followPlaylist(playlistID)}>Follow Playlist</Button>  
+                <div> 
+                  <Button outline size="lg" className="btn-secondary" onClick={() => this.followPlaylist(playlistID)}>Follow Playlist</Button>  
+                  <Button outline size="lg" className="btn-secondary" onClick={() => this.getMoodPlaylist(this.generateMood(highestPredicted.id))}>Reload</Button>  
+                </div>
                 :  <div>
                 <Button outline size="lg" className="btn-secondary" id="Popover1" type="button">
                   Follow Playlist
@@ -772,9 +908,35 @@ export default class App extends Component {
                 <Popover placement="bottom" isOpen={popoverOpen} target="Popover1" toggle={this.toggleFollow}>
                   <PopoverBody>Choose a playlist from the carousel first!</PopoverBody>
                 </Popover>
+                <Button outline size="lg" className="btn-secondary" onClick={() => this.getMoodPlaylist(this.generateMood(highestPredicted.id))}>Reload</Button>  
                 </div>}
               </Fade> 
               : null   } 
+
+
+
+              { activatePersonalized ?
+                <Fade>
+                <ListGroup>
+                <div id="track-container">
+                <div id="tracks">
+                 { personalTracks.map((track) => {
+                    return <ListGroupItem onClick={() => this.getTracksToPlay(track.track_uri)} key={track.track_id} className="track-element"> 
+                    <img src={track.track_albumArt} alt="Album Art" width="150" height="150"/>
+                    <h4> {track.track_name}</h4>
+                    <p> {track.track_artist}</p>
+                  </ListGroupItem>}) }
+                  </div>               
+                </div>
+                </ListGroup>
+                <Button outline size="lg" className="btn-secondary" onClick={() => this.appendPlaylist(user.user_id, tracks)}>Add to Library</Button>
+                <Button outline size="lg" className="btn-secondary" onClick={() => this.retrieveRecommendations(highestPredicted.id)}>Reload</Button>  
+  
+                {/*alertOpen ? <Fade in={alertOpen}><Alert color="success">You have added this playlist in your library! </Alert> </Fade>: null*/}
+                </Fade> : null }
+
+
+
 
             </Col>
           
@@ -785,7 +947,7 @@ export default class App extends Component {
               <Jumbotron fluid className="jumbo pull-right text-right">
               <Container fluid>
                 <h1 className="display-3 jumbo-txt">SpotiFace Jukebox</h1>
-                <p className="lead jumbo-txt">Tracks based on tuned track attributes according to your mood</p>
+                <p className="lead jumbo-txt">Fresh, hand-picked tracks based on tuneable track attributes according to your mood</p>
                 <hr className="my-2" />
                  {feature.map((_feature) => {
                    return <div key={_feature.id}>
@@ -806,7 +968,7 @@ export default class App extends Component {
               <Jumbotron fluid className="jumbo pull-right text-right">
               <Container fluid>
                 <h1 className="display-3 jumbo-txt">Mood Playlists</h1>
-                <p className="lead jumbo-txt">Public-created playlists that suits your mood</p>
+                <p className="lead jumbo-txt">Choose a public-created playlists that suits your mood</p>
                 <hr className="my-2" />
                 <p className="jumbo-txt">The category is based on: {generatedMood}</p>
               </Container>
@@ -830,7 +992,7 @@ export default class App extends Component {
 
                 <Col sm="4" className="margin-10" >  
                   { currTrack.albumImg ? 
-                    <div>
+                    <div id="currTrack">
                     <img src={currTrack.albumImg} alt="album_img" width="140"/>
                     <h3>{currTrack.trackName}</h3>
                     <p>{currTrack.artistName}</p> 

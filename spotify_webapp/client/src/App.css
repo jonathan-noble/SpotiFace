@@ -14,13 +14,13 @@ margin: 0 auto 50px;
 
 h1 {
 text-align: center;
-font-family: 'Dr Sugiyama', cursive;
+font-family: 'Noto Serif', serif;
 font-size: 62px;
 color: #ffffff;
 }
 
 h2, h3, p, .navbar-nav {
-font-family: 'Lato', sans-serif;
+font-family: 'Noto Serif', sans-serif;
 } 
 
 h2 {
@@ -75,9 +75,6 @@ margin-bottom: 50px !important;
   margin-left: 625px !important;
 }
 
-.margin-photo {
-  margin-left: 320px !important;
-}
 
 .margin-60 {
 margin-bottom: 60px !important;
@@ -87,7 +84,7 @@ margin-bottom: 70px !important;
 }
 .margin-70_center {
   margin-bottom: 70px !important;
-  margin-left: 100px !important;
+  margin-left: 15px !important;
 }
 .margin-80 {
 margin-bottom: 80px !important;
@@ -191,6 +188,13 @@ color: #ffffff;
 transition: all 0.35s ease-in-out;
 }
 
+.camera-btn {
+  border: 2px solid white;
+  border-radius: 10px;
+  margin-top: 9px !important;
+  margin-left: 450px !important;
+}
+
 /*-------------------Colors----------------*/
 .dark-gray {
 color: #545454;
@@ -288,25 +292,25 @@ border-width: 2px;
 
 .track-element {
   justify-content: space-between;
-  padding: 5px 0; 
-  /* margin-left:150px; */
+  border: 2px solid rgb(224, 154, 154);
+  padding: 20px;
+  overflow: hidden; 
 }
 
-/* .track-element >img {
-  padding: 5px 0;
-  margin-left:150px;
+.track-element img {
+  margin-right: 15px;
+  float: left;
 }
 
-.track-element >h4 {
-  padding: 5px 0;
-  margin-left:150px;
-}
 
+
+
+/*
 .track-element >p {
   padding: 5px 0;
   margin-left:150px;
-}
- */
+} */
+
 
 
 .track-element > div {
@@ -406,6 +410,15 @@ position: absolute;
 #player {
     background-color: #232424;
     overflow: hidden; 
+}
+
+#currTrack {
+  margin: 0px auto;
+}
+
+#currTrack > img {
+  float: left;
+  margin-right: 30px;
 }
 
 #player-sticky {
