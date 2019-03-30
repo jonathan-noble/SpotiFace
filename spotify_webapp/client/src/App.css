@@ -84,7 +84,7 @@ margin-bottom: 70px !important;
 }
 .margin-70_center {
   margin-bottom: 70px !important;
-  margin-left: 15px !important;
+  margin-left: 125px !important;
 }
 .margin-80 {
 margin-bottom: 80px !important;
@@ -357,21 +357,21 @@ width: 100%;
  Main styles
  ========================================================================== */
 
-#main1 {
+#container1 {
 background-color: #141616;
 overflow: hidden;
 }
 
 
-.main1-text {
+.container1-text {
 padding-top: 175px;
 } 
 
-.main1-img {
+.container1-img {
 margin-top: -100px;
 }   
 
-#main2 {
+#container2 {
 background: #f4f4f4;
 padding-top: 0px;
 min-height: 650px;
@@ -379,7 +379,7 @@ overflow: hidden;
 height: auto;
 }
 
-.main2-img {
+.container2-img {
 position: absolute;
 right: 0;
 }
@@ -394,13 +394,13 @@ right: 0;
 }
 
 
-#main3 {
+#container3 {
 background: #ffffff;
 padding-top: 0px;
 overflow: hidden;
 }
 
-.main3-img {
+.container3-img {
 left: 0;
 margin-left: -300px;
 margin-top: 160px;
