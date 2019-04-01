@@ -158,7 +158,7 @@ export default class Preference extends Component {
         track_name: track.name,
         track_artist: track.artists.map(artist => artist.name).join(", "),
         track_uri: track.uri, 
-        track_albumArt: track.album.images[0].url 
+        track_albumArt: track.album.images[0] ? track.album.images[0].url  : null,
       }))
 
       console.log(tracks.length, "Recommended tracks successfully retrieved.");
@@ -208,7 +208,7 @@ export default class Preference extends Component {
                   .map( (plist) => ({ 
                     plist_id: plist.id, 
                     plist_name: plist.name, 
-                    plist_albumArt: plist.images[0].url 
+                    plist_albumArt: plist.images[0] ? plist.images[0].url : null,
                   })).slice(0, 10);
 
               
@@ -284,16 +284,16 @@ export default class Preference extends Component {
           <h1>Choose your preference</h1>
           </Row>
           <Row className="margin-70_center">
-            <Button size="lg" color="primary" onClick={() => this.retrieveRecommendations(highestPredicted.id)}>SpotiFace Jukebox</Button>  
-            <Button size="lg" color="primary" onClick={() => this.getMoodPlaylist(this.generateMood(highestPredicted.id))}>Mood Playlists</Button>                                
+            <Button size="lg" color="primary" onClick={() => this.retrieveRecommendations(highestPredicted.mood)}>SpotiFace Jukebox</Button>  
+            <Button size="lg" color="primary" onClick={() => this.getMoodPlaylist(this.generateMood(highestPredicted.mood))}>Mood Playlists</Button>                                
           </Row>
         </Col>
         </Container>
         </section>
 
       <Container3 
-        retrieveRecommendations={() => this.retrieveRecommendations(highestPredicted.id)}
-        getMoodPlaylist={() => this.getMoodPlaylist(this.generateMood(highestPredicted.id))}
+        retrieveRecommendations={() => this.retrieveRecommendations(highestPredicted.mood)}
+        getMoodPlaylist={() => this.getMoodPlaylist(this.generateMood(highestPredicted.mood))}
         highestPredicted={highestPredicted}
         activatePlaylists={activatePlaylists}
         activateTracks={activateTracks}

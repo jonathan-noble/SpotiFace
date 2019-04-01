@@ -8,7 +8,7 @@ html, body {
 
 body {
 font-family: "Helvetica Neue", Helvetica, sans-serif;
-font-weight: 200;
+font-weight: 400;
 margin: 0 auto 50px;
 }
 
@@ -25,13 +25,13 @@ font-family: 'Noto Serif', sans-serif;
 
 h2 {
 font-size: 42px;
-font-weight: 300;
+font-weight: 500;
 color: #545454;
 }
 
 h3 {
 font-size: 30px;
-font-weight: 300;
+font-weight: 500;
 color: #ffffff;
 }
 
@@ -71,8 +71,9 @@ margin-bottom: 40px !important;
 margin-bottom: 50px !important;
 }
 .margin-50_center {
+  height: 10em;
   margin-bottom: 50px !important;
-  margin-left: 625px !important;
+  margin-left: 33% !important;
 }
 
 
@@ -107,10 +108,8 @@ margin-top: 150px !important;
 margin-bottom: 150px !important;
 }
 
-.margin-150_lesstop {
-margin-top: 50px !important;
-margin-left: 130px !important;
-margin-bottom: 500px !important;
+.margin-50_lesstop {
+margin-top: 30px !important;
 }
 
 .round10 {
@@ -135,7 +134,7 @@ margin-bottom: 500px !important;
 -moz-user-select: none;
 background-image: none;
 border: 1px solid rgba(0, 0, 0, 0);
-border-radius: 2px;
+border-radius: 10px;
 cursor: pointer;
 display: inline-block;
 font-size: 14px;
@@ -149,7 +148,7 @@ white-space: nowrap;
 }
 
 .btn-lg {
-border-radius: 2px;
+border-radius: 10px;
 font-size: 18px;
 line-height: 1.33;
 padding: 14px 22px;
@@ -159,12 +158,14 @@ padding: 14px 22px;
 background-color: transparent;
 border-color: #FFFFFF;
 color: #FFFFFF;
+font-weight: bold;
 }
 
 .btn-primary:hover, .btn-primary:focus, .btn-primary:active, .btn-primary.active, .open .dropdown-toggle.btn-primary {
 background-color: #ffffff;
 border-color: #FFFFFF;
 color: #545454;
+font-weight: bold;
 
 -webkit-transition: all 0.35s ease-in-out;
 -moz-transition: all 0.35s ease-in-out;
@@ -175,12 +176,14 @@ transition: all 0.35s ease-in-out;
 .btn-secondary {
 background-color: transparent;
 border-color: #272e31;
+font-weight: bold;
 }
 
 .btn-secondary:hover, .btn-secondary:focus, .btn-secondary:active, .btn-secondary.active, .open .dropdown-toggle.btn-secondary {
 background-color: #272e31;
 border-color: #272e31;
 color: #ffffff;
+font-weight: bold;
 
 -webkit-transition: all 0.35s ease-in-out;
 -moz-transition: all 0.35s ease-in-out;
@@ -189,11 +192,21 @@ transition: all 0.35s ease-in-out;
 }
 
 .camera-btn {
+  height: 65px;
   border: 2px solid white;
   border-radius: 10px;
-  margin-top: 9px !important;
-  margin-left: 450px !important;
+  margin-top: 18px !important;
+  margin-left: 330px !important;
 }
+
+
+.react-file-reader-button {
+  /* padding-top: 1px; */
+  height: 65px;
+  border-radius: 10px;
+  margin-top: 4px !important;
+}
+
 
 /*-------------------Colors----------------*/
 .dark-gray {
@@ -284,6 +297,26 @@ border-width: 2px;
   cursor: pointer;
 }
 
+#highest-pred {
+  color: #000000;
+  font-size: 55px;
+  font-family: 'Noto Serif', serif;
+  text-align: center;
+}
+
+.predictions {
+  color: #000000;
+  font-size: 30px;
+  font-family: 'Noto Serif', serif;
+  text-align: center;
+}
+
+#repeat-btn {
+  display: block;
+  margin-left: auto;
+  margin-right: auto;
+}
+
 #tracks {
   flex: 6;
   background: #d8d3d1;
@@ -301,17 +334,6 @@ border-width: 2px;
   margin-right: 15px;
   float: left;
 }
-
-
-
-
-/*
-.track-element >p {
-  padding: 5px 0;
-  margin-left:150px;
-} */
-
-
 
 .track-element > div {
   display: inherit;
@@ -340,6 +362,7 @@ border-width: 2px;
 
 
 .webcam-bg {
+  margin-left: 30px !important;
   border: solid 2px;
   border-color: #ffffff;
 }
@@ -372,23 +395,25 @@ margin-top: -100px;
 }   
 
 #container2 {
-background: #f4f4f4;
-padding-top: 0px;
-min-height: 650px;
-overflow: hidden;
-height: auto;
+  background: #f4f4f4;
+  padding-top: 0px;
+  min-height: 650px;
+  overflow: hidden;
+  height: auto;
 }
 
 .container2-img {
-position: absolute;
-right: 0;
+  position: absolute;
+  left: 10%;
+  width: 83%;
+  height: 530px;
 }
 
 #selectPreference {
-  display: table;
-  height: 100px;
+  display: flex;
   width: 100%;
-  text-align: center;
+  align-items: center;
+  justify-content: center;
   background-color: #141616;
   overflow: hidden;
 }
@@ -407,6 +432,10 @@ margin-top: 160px;
 position: absolute;
 }
 
+.container3-btn {
+  margin-left: 33%;
+}
+
 #player {
     background-color: #232424;
     overflow: hidden; 
@@ -421,15 +450,12 @@ position: absolute;
   margin-right: 30px;
 }
 
-#player-sticky {
-  /* background-color: #232424;
-  background-position: center;
-  background-attachment: fixed;
-  overflow: hidden; */
-}
+
 
 .player-btn {
   margin-bottom: 50px !important;
-  padding: 15px;
+  padding: 25px;
+  border: 1px solid white;
+  border-radius: 100%; 
 }
 

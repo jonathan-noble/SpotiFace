@@ -1,9 +1,11 @@
 import React, { Component } from 'react';
 import '../App.css';
-import { Container, Row, Col, Button} from 'reactstrap';
-import { faCamera } from "@fortawesome/free-solid-svg-icons";
+import { Container, Row, Col, 
+        Button} from 'reactstrap';
+import { faCamera, faUpload } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import Webcam from 'react-webcam'; 
+import ReactFileReader from 'react-file-reader';
 import Container2 from './Container2';
 import Preference from './Preference';
 
@@ -14,7 +16,7 @@ export default class Container1 extends Component {
         super(props);
         this.state = {
             imageData: null,
-            mood: { angry: null, scared: null, happy: null, sad: null, surprised: null, neutral: null},
+            predictions: {},
             highestPredicted: {},
             }
     }
@@ -29,9 +31,28 @@ export default class Container1 extends Component {
         let message = {
           image: base64Image
         }
-    
+
+        this.predictData(message);
+      }
         
-        fetch('http://127.0.0.1:5000/', {
+  
+    handleFiles = files => {
+      let _files = files.base64;
+      let base64Image = _files.replace("data:image/jpeg;base64,","");
+      this.setState({ 
+        imageData: _files
+        });
+
+      let message = {
+        image: base64Image
+      }
+
+      this.predictData(message);
+    }
+
+    predictData(message) {
+
+      fetch('http://127.0.0.1:5000/', {
         method: 'post',
         headers: {
             Accept: "application/json",
@@ -44,42 +65,37 @@ export default class Container1 extends Component {
         return response.json();  //response.json() is resolving its promise. It waits for the body to load
         })
         .then((data) => {
-          this.setState( {
-            mood: {
-              angry: data.prediction.angry,
-              scared: data.prediction.scared,
-              happy: data.prediction.happy,
-              sad: data.prediction.sad,
-              surprised: data.prediction.surprised,
-              neutral: data.prediction.neutral,
-            }
-          })
-    
+          
           const keys = Object.keys(data.prediction);
           // projects data.prediction into an array of object key=prediction pairs
-          const arrayOfPredictions = keys.map(key => ({
-            id: key, 
+          const arrayOfPreds = keys.map(key => ({
+            mood: key, 
             predict: data.prediction[key]
             })
           );
     
-          let highestPred = arrayOfPredictions.reduce(function(prev, curr) {
+          let highestPred = arrayOfPreds.reduce((prev, curr) => {
             return prev.predict > curr.predict ? prev : curr;
             });
     
-          // let moodDetected = this.generateMood(highestPred.id); // function where it will return a randomized string from a set of "related" and or "associated" mood words 
+            console.log(highestPred.mood, highestPred.predict); 
+
+
+            let orderedPred = arrayOfPreds.sort((a, b) => {
+                return b.predict - a.predict;
+            });
+            
+            console.log(orderedPred);
     
-          console.log(highestPred.id, arrayOfPredictions[0].predict); 
+            
+            this.setState({
+              highestPredicted: highestPred,
+              predictions: orderedPred
+            })
     
-          this.setState( {
-            highestPredicted: highestPred
-          })
-    
-          // this.getMoodPlaylist(moodDetected);
       })
-      .catch(error => this.setState({ error,  mood: { angry: null, scared: null, happy: null, sad: null, surprised: null, neutral: null }, }))
-      }
-        
+      .catch(error => {console.log(error)});
+    }
 
       
     render() {
@@ -91,7 +107,7 @@ export default class Container1 extends Component {
 
         const {
             imageData,
-            mood,
+            predictions,
             highestPredicted
         } = this.state;
 
@@ -101,31 +117,41 @@ export default class Container1 extends Component {
         <section id="container1"> 
         <Container fluid>
         <Row className="row">
-            <Col xl="7" className="margin-150">
-            
-            
-                <Webcam
-                className="webcam-bg round15"
-                audio={false}
-                ref={node => this.webcam = node}
-                screenshotFormat="image/jpeg"
-                width={1000}
-                height={500}
-                videoConstraints={videoConstraints}
-                />
+            <Col xl="7" className="margin-150">    
 
-            <Button color="primary" onClick={this.captureShot} className="camera-btn" href="#container2" size="lg"><FontAwesomeIcon icon={faCamera}/></Button>     
+                  <Webcam
+                  className="webcam-bg round15"
+                  audio={false}
+                  ref={node => this.webcam = node}
+                  screenshotFormat="image/jpeg"
+                  width={1000}
+                  height={500}
+                  videoConstraints={videoConstraints}
+                  /> 
+
             </Col>
         
             <Col xl="4" className="pull-right margin-150">
                 <h1>Give it a go!</h1>
                 <h3>Let SpotiFace recommend a playlist for<strong><em> you</em></strong>.</h3>
+
+                <Row>
+                  <Button color="primary" size="lg" onClick={this.captureShot} className="camera-btn" href="#container2" ><FontAwesomeIcon size="lg" icon={faCamera}/> Take a photo</Button>  
+
+                  <ReactFileReader fileTypes={[".jpg",".jpeg", ".png", ".tiff", ".bmp"]} base64={true} multipleFiles={false} handleFiles={this.handleFiles}>
+                    <Button color="primary" size="lg" className="react-file-reader-button" href="#container2"><FontAwesomeIcon size="lg" icon={faUpload}/> Upload</Button>
+                  </ReactFileReader>  
+                </Row>
             </Col>
         </Row>
         </Container>
         </section>
                 
-        <Container2 imageData={imageData} mood={mood} highestPredicted={highestPredicted}/>
+        <Container2
+         imageData={imageData} 
+         predictions={predictions}
+         highestPredicted={highestPredicted}/>
+
         <Preference highestPredicted={highestPredicted}/>
       </section>  
      );

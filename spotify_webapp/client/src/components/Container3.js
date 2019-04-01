@@ -147,6 +147,7 @@ export default class Container3 extends Component {
 
 
         const {
+            highestPredicted,
             retrieveRecommendations,
             getMoodPlaylist,
             activateTracks,
@@ -180,10 +181,7 @@ export default class Container3 extends Component {
                     </div>               
                 </div>
                 </ListGroup>
-                <Button outline size="lg" className="btn-secondary" onClick={() => this.appendPlaylist(user.user_id, tracks)}>Add to Library</Button>
-                <Button outline size="lg" className="btn-secondary" onClick={retrieveRecommendations}>Reload</Button>  
-
-                {/*alertOpen ? <Fade in={alertOpen}><Alert color="success">You have added this playlist in your library! </Alert> </Fade>: null*/}
+ 
                 </Fade> : null }
 
 
@@ -209,20 +207,6 @@ export default class Container3 extends Component {
                     })
                     }
                 </Carousel> 
-                {playlistID ? 
-                    <div> 
-                    <Button outline size="lg" className="btn-secondary" onClick={() => this.followPlaylist(playlistID)}>Follow Playlist</Button>  
-                    <Button outline size="lg" className="btn-secondary" onClick={getMoodPlaylist}>Reload</Button>  
-                    </div>
-                    :  <div>
-                    <Button outline size="lg" className="btn-secondary" id="Popover1" type="button">
-                    Follow Playlist
-                    </Button>
-                    <Popover placement="bottom" isOpen={popoverOpen} target="Popover1" toggle={this.toggleFollow}>
-                    <PopoverBody>Choose a playlist from the carousel first!</PopoverBody>
-                    </Popover>
-                    <Button outline size="lg" className="btn-secondary" onClick={getMoodPlaylist}>Reload</Button>  
-                    </div>}
                 </Fade> 
                 : null   } 
 
@@ -236,7 +220,7 @@ export default class Container3 extends Component {
                 <Jumbotron fluid className="jumbo pull-right text-right">
                 <Container fluid>
                     <h1 className="display-3 jumbo-txt">SpotiFace Jukebox</h1>
-                    <p className="lead jumbo-txt">Fresh, hand-picked tracks based on tuneable track attributes corresponding to your mood</p>
+                    <p className="lead jumbo-txt">Fresh, algorithm-picked tracks based on tuneable track attributes corresponding to you being <strong><em>{highestPredicted.mood}</em></strong>!</p>
                     <hr className="my-2" />
                     {feature.map((_feature) => {
                     return <div key={_feature.id}>
@@ -248,6 +232,12 @@ export default class Container3 extends Component {
                     <p className="jumbo-txt">Genres: {genres} </p>
                 </Container>
                 </Jumbotron>
+                <div className="container3-btn"> 
+                    <Button outline size="lg" className="btn-secondary" onClick={retrieveRecommendations}>Reload</Button>  
+                    <Button outline size="lg" className="btn-secondary" onClick={() => this.appendPlaylist(user.user_id, tracks)}>Add to Library</Button>
+                </div>
+
+                {/*alertOpen ? <Fade in={alertOpen}><Alert color="success">You have added this playlist in your library! </Alert> </Fade>: null*/}
                 </Fade>  
                 : null
                 }
@@ -262,6 +252,21 @@ export default class Container3 extends Component {
                     <p className="jumbo-txt">The category is based on: {generatedMood}</p>
                 </Container>
                 </Jumbotron>
+
+                {playlistID ? 
+                    <div className="container3-btn"> 
+                    <Button outline size="lg" className="btn-secondary" onClick={getMoodPlaylist}>Reload</Button>  
+                    <Button outline size="lg" className="btn-secondary" onClick={() => this.followPlaylist(playlistID)}>Follow Playlist</Button>  
+                    </div>
+                    :  <div className="container3-btn">
+                    <Button outline size="lg" className="btn-secondary" onClick={getMoodPlaylist}>Reload</Button>  
+                    <Button outline size="lg" className="btn-secondary" id="Popover1" type="button">
+                    Follow Playlist
+                    </Button>
+                    <Popover placement="bottom" isOpen={popoverOpen} target="Popover1" toggle={this.toggleFollow}>
+                    <PopoverBody>Choose a playlist from the carousel first!</PopoverBody>
+                    </Popover>
+                    </div>}
                 </Fade>
                 : null
                 } 

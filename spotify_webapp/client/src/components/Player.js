@@ -174,11 +174,11 @@ export default class Player extends Component {
             }
           </Col>   
           <Col sm="6">
-          <Sticky mode="bottom" id="player-sticky" className="margin-10">
+          <Sticky mode="bottom" className="margin-10">
             <Fade>
-            <Button active size="lg" color="secondary" className="player-btn" onClick={() => this.onPrevClick()}><FontAwesomeIcon icon={faStepBackward}/></Button>
-            <Button active size="lg" color="secondary" className="player-btn" onClick={() => this.onPlayClick()}>{playing ? <FontAwesomeIcon icon={faPauseCircle}/>: <FontAwesomeIcon icon={faPlayCircle}/>} </Button>
-            <Button active size="lg" color="secondary" className="player-btn" onClick={() => this.onNextClick()}><FontAwesomeIcon icon={faStepForward}/></Button>  
+            <Button active size="lg" color="secondary" className="player-btn" onClick={() => this.onPrevClick()}><FontAwesomeIcon size="lg" icon={faStepBackward}/></Button>
+            <Button active size="lg" color="secondary" className="player-btn" onClick={() => this.onPlayClick()}>{playing ? <FontAwesomeIcon size="2x" icon={faPauseCircle}/>: <FontAwesomeIcon size="2x" icon={faPlayCircle}/>} </Button>
+            <Button active size="lg" color="secondary" className="player-btn" onClick={() => this.onNextClick()}><FontAwesomeIcon size="lg" icon={faStepForward}/></Button>  
             </Fade>
             </Sticky>
           </Col>
