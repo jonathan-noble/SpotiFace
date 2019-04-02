@@ -1,6 +1,7 @@
 import React, { Component } from 'react';
 import '../App.css';
 import { Container, Row, Col, Button} from 'reactstrap';
+import { animateScroll as scroll } from 'react-scroll'
 import Container3 from './Container3';
 import SpotifyWebApi from 'spotify-web-api-js';
 const spotifyApi = new SpotifyWebApi();
@@ -22,6 +23,9 @@ export default class Preference extends Component {
   }
   
   retrieveRecommendations(moodGen) {
+
+    scroll.scrollTo(1411); 
+
     let features = {};
 
     this.setState( {
@@ -43,32 +47,36 @@ export default class Preference extends Component {
         features.target_valence=0.1;
         break;
       case 'scared':
+        features.acousticness=0.2;
         features.target_danceability=0.2;
         features.target_energy=0.4;
-        features.target_instrumentalness=0.7;
         features.max_loudness= (-1.5);
         features.min_loudness=0.5;
+        features.target_instrumentalness=0.7;
         features.target_mode=0;
         features.tempo=100;
         features.valence=0.4;
         break;
       case 'happy':
+        features.acousticness=0.5;
         features.target_danceability=1.0;
         features.target_energy=1.0; 
+        features.loudness= (-5.5);
         features.max_instrumentalness= 0.6;
         features.min_instrumentalness=0.1;
-        features.loudness= (-5.5);
         features.target_mode=1.0;
+        features.tempo=125;
         features.target_valence=1.0;
         break;
       case 'sad':
         features.max_acousticness=0.8;
         features.target_danceability=0.1;
         features.target_energy=0.1;
+        features.loudness=(2.5);
         features.max_instrumentalness= 0.8;
         features.min_instrumentalness=0.2;
-        features.loudness=(2.5);
         features.target_mode=0;
+        features.tempo=80;
         features.target_valence=0.0;
         break;
       case 'surprised':
@@ -79,6 +87,7 @@ export default class Preference extends Component {
         features.min_instrumentalness=0.4;
         features.loudness= (-6.5);
         features.target_mode=1;
+        features.tempo=110;
         features.valence=0.7;
         break;
       case 'neutral':
@@ -91,9 +100,14 @@ export default class Preference extends Component {
         features.target_valence=0.5;
         break;
       default:
-        features.danceability=1.0;
-        features.energy=1.0;
-        features.target_valence=1.0;      
+        features.acousticness=0.5;
+        features.target_danceability=0.9;
+        features.target_energy=0.8;
+        features.max_loudness= (-4.5);
+        features.min_loudness=1.0;
+        features.target_instrumentalness=0.6;
+        features.tempo=100;
+        features.valence=1.0;
         break;
     }
 
@@ -187,6 +201,8 @@ export default class Preference extends Component {
   getMoodPlaylist = (generatedMood)  => {
     console.log(generatedMood);
 
+    scroll.scrollTo(1100); 
+
     this.setState({
       generatedMood,
       activatePlaylists: true,
@@ -225,12 +241,13 @@ export default class Preference extends Component {
   }
 
   generateMood(moodGen) {
-    const angryList =  ['angry mood', 'annoyed', 'bitter', 'rock', 'mad', 'metal'];
-    const scaredList =  ['scared mood', 'anxious', 'fear', 'frightened', 'panicked', 'afraid'];
-    const happyList =  ['happy mood', 'celebrate', 'dance', 'energy', 'upbeat', 'reggae', 'lively'];
-    const sadList =  ['sad mood', 'heartbroken', 'sorry', 'melancholy', 'pessimistic', 'unfortunate'];
-    const surprisedList =  ['surprised mood', 'shocked', 'wow', 'amazing', 'techno', 'damn'];
-    const neutralList =  ['neutral mood', 'chill', 'acoustic', 'relaxed', 'nature', 'couch'];
+    const angryList =  ['Angry Mood', 'Angry', 'Annoyed', 'Bitter', 'Rock', 'Mad', 'Metal', 'Rage', 'Bangers', 'Blues'];
+    const scaredList =  ['Scared Mood', 'Scared', 'Stressed', 'Anxious', 'Anxiety', 'Fear', 'Frightened', 'Panic', 'Terrified', 'Afraid', 'Soul', 'Thrill', 'Thriller'];
+    const happyList =  ['Happy Mood', 'Happy', 'Celebrate', 'Dance', 'Energy', 'Upbeat', 'Reggae', 'Lively', 'Good Vibes', 'Good', 'Joy', 'Lucky', 'Funk', 'Comedy'];
+    const sadList =  ['Sad Mood', 'Sad', 'Heartbroken', 'Sorry', 'Melancholy', 'Pessimistic', 'Unfortunate', 'Punk', ];
+    const surprisedList =  ['Surprised Mood', 'Surprised', 'Shocked', 'Wow', 'Amazing', 'Techno', 'Damn', 'Classical', 'EDM'];
+    const neutralList =  ['Neutral Mood', 'Neutral', 'Chill', 'Acoustic', 'Relaxed', 'Nature', 'Couch', 'Jazz', 'Study', 'Sleep'];
+    const randomList = ['Random Mood', 'Random', 'Shuffle', 'Whatever', 'Okay']
 
     switch(moodGen) {
       case 'angry':
@@ -252,7 +269,8 @@ export default class Preference extends Component {
         let neutralVal = Math.floor(Math.random()*neutralList.length);
         return neutralList[neutralVal];
       default:
-        return "Random Mood"
+        let randomVal = Math.floor(Math.random()*randomList.length);
+        return randomList[randomVal];
     }
   }
 
@@ -283,9 +301,9 @@ export default class Preference extends Component {
           <Row>
           <h1>Choose your preference</h1>
           </Row>
-          <Row className="margin-70_center">
-            <Button size="lg" color="primary" onClick={() => this.retrieveRecommendations(highestPredicted.mood)}>SpotiFace Jukebox</Button>  
-            <Button size="lg" color="primary" onClick={() => this.getMoodPlaylist(this.generateMood(highestPredicted.mood))}>Mood Playlists</Button>                                
+          <Row id="preference-btn-group">
+            <Button className="preference-btn" size="lg" color="warning" active={activateTracks ? true : false} onClick={() => this.retrieveRecommendations(highestPredicted.mood)}>SpotiFace Jukebox</Button>  
+            <Button className="preference-btn" size="lg" color="warning" active={activatePlaylists ? true : false} onClick={() => this.getMoodPlaylist(this.generateMood(highestPredicted.mood))}>Mood Playlists</Button>                                
           </Row>
         </Col>
         </Container>
@@ -303,6 +321,7 @@ export default class Preference extends Component {
         playlists={playlists}
         tracks={tracks}
       />
+
     </section>
     );
   }

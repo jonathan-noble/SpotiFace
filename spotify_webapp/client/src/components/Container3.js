@@ -3,8 +3,9 @@ import '../App.css';
 import { Container, Row, Col, 
     Button, Fade,
     ListGroup, ListGroupItem, Jumbotron,
-    Popover, PopoverBody, } from 'reactstrap';
+    UncontrolledPopover, PopoverBody, UncontrolledAlert } from 'reactstrap';
 import "react-responsive-carousel/lib/styles/carousel.min.css";
+import { animateScroll as scroll } from 'react-scroll'
 import { Carousel } from 'react-responsive-carousel';
 import Player from './Player';
 import SpotifyWebApi from 'spotify-web-api-js';
@@ -18,10 +19,9 @@ export default class Container3 extends Component {
         this.state = {
             user: {},
             playlistID: "",
-            popoverOpen: false,
-            alertOpen: false,
+            trackAlertOpen: false,
+            plistAlertOpen: false
         }
-        this.toggleFollow = this.toggleFollow.bind(this);
     }
 
     componentDidMount() {
@@ -49,13 +49,9 @@ export default class Container3 extends Component {
       }
 
     
-    toggleFollow() {
-        this.setState({
-        popoverOpen: !this.state.popoverOpen
-        });
-    }
 
     getTracksToPlay(track_uri) {
+        scroll.scrollTo(1650); 
         let trackURI = [];
         trackURI.push(track_uri);
         console.log(trackURI);
@@ -66,6 +62,8 @@ export default class Container3 extends Component {
     }
 
     getPlaylistToPlay(plist) {
+        
+     scroll.scrollTo(1650); 
         
         if(plist != null) {
         let trackIds = [];
@@ -104,6 +102,10 @@ export default class Container3 extends Component {
 
     appendPlaylist(u_id, tracks) {
 
+        this.setState({
+            trackAlertOpen: !this.state.trackAlertOpen
+        })
+
         spotifyApi.createPlaylist(u_id, {name: "SpotiFace Jukebox" })
         .then((plist) => {
             return plist.id;
@@ -132,7 +134,7 @@ export default class Container3 extends Component {
         });
 
         this.setState({
-        alertOpen: !this.state.alertOpen
+           plistAlertOpen: !this.state.plistAlertOpen
         })
     }
 
@@ -141,8 +143,8 @@ export default class Container3 extends Component {
         const {
             user,
             playlistID,
-            popoverOpen,
-            alertOpen,
+            trackAlertOpen,
+            plistAlertOpen
         } = this.state;
 
 
@@ -156,7 +158,7 @@ export default class Container3 extends Component {
             genres,
             feature,
             playlists,
-            tracks,
+            tracks
         } = this.props;
 
     return(
@@ -188,7 +190,7 @@ export default class Container3 extends Component {
                 {activatePlaylists ?
                     <Fade>
                     <Carousel
-                    width={"85%"}
+                    width={"95%"}
                     autoPlay 
                     showThumbs={false}
                     useKeyboardArrows
@@ -213,14 +215,14 @@ export default class Container3 extends Component {
 
                 </Col>
             
-                <Col xl="4" className="margin-20">
+                <Col xl="4" className="margin-minus_40">
 
                 { activateTracks ?
                 <Fade>
                 <Jumbotron fluid className="jumbo pull-right text-right">
                 <Container fluid>
                     <h1 className="display-3 jumbo-txt">SpotiFace Jukebox</h1>
-                    <p className="lead jumbo-txt">Fresh, algorithm-picked tracks based on tuneable track attributes corresponding to you being <strong><em>{highestPredicted.mood}</em></strong>!</p>
+                    <p className="lead jumbo-txt">Fresh, algorithm-picked tracks based on tuneable track attributes corresponding to your mood being <strong>{highestPredicted.mood}</strong>!</p>
                     <hr className="my-2" />
                     {feature.map((_feature) => {
                     return <div key={_feature.id}>
@@ -231,13 +233,18 @@ export default class Container3 extends Component {
                     <hr className="my-2" />
                     <p className="jumbo-txt">Genres: {genres} </p>
                 </Container>
-                </Jumbotron>
-                <div className="container3-btn"> 
-                    <Button outline size="lg" className="btn-secondary" onClick={retrieveRecommendations}>Reload</Button>  
-                    <Button outline size="lg" className="btn-secondary" onClick={() => this.appendPlaylist(user.user_id, tracks)}>Add to Library</Button>
+                </Jumbotron> 
+                <div id="container3-btn-group"> 
+                    <Button outline className="container3-btn" color="secondary" size="lg" onClick={retrieveRecommendations}>Reload</Button>  
+                    <Button outline className="container3-btn" color="secondary" size="lg" onClick={() => this.appendPlaylist(user.user_id, tracks)}>Add to Library</Button>
                 </div>
+               
+                {trackAlertOpen ? 
+                    <UncontrolledAlert color="success">
+                    You have added this playlist in your library! 
+                    </UncontrolledAlert>
+                  : null}
 
-                {/*alertOpen ? <Fade in={alertOpen}><Alert color="success">You have added this playlist in your library! </Alert> </Fade>: null*/}
                 </Fade>  
                 : null
                 }
@@ -247,26 +254,34 @@ export default class Container3 extends Component {
                 <Jumbotron fluid className="jumbo pull-right text-right">
                 <Container fluid>
                     <h1 className="display-3 jumbo-txt">Mood Playlists</h1>
-                    <p className="lead jumbo-txt">Choose a public-created playlists that suits your mood</p>
+                    <p className="lead jumbo-txt">Choose a public-created playlist that suits your mood</p>
                     <hr className="my-2" />
                     <p className="jumbo-txt">The category is based on: {generatedMood}</p>
                 </Container>
                 </Jumbotron>
-
+                
                 {playlistID ? 
-                    <div className="container3-btn"> 
-                    <Button outline size="lg" className="btn-secondary" onClick={getMoodPlaylist}>Reload</Button>  
-                    <Button outline size="lg" className="btn-secondary" onClick={() => this.followPlaylist(playlistID)}>Follow Playlist</Button>  
+                    <div id="container3-btn-group"> 
+                    <Button outline size="lg" className="container3-btn" color="secondary" onClick={getMoodPlaylist}>Reload</Button>  
+                    <Button outline size="lg" className="container3-btn" color="secondary" onClick={() => this.followPlaylist(playlistID)}>Follow Playlist</Button>  
                     </div>
-                    :  <div className="container3-btn">
-                    <Button outline size="lg" className="btn-secondary" onClick={getMoodPlaylist}>Reload</Button>  
-                    <Button outline size="lg" className="btn-secondary" id="Popover1" type="button">
+                    :  <div id="container3-btn-group">
+                    <Button outline size="lg" className="container3-btn" color="secondary" onClick={getMoodPlaylist}>Reload</Button>  
+                    <Button outline size="lg" className="container3-btn" color="secondary" id="PopoverFollow" type="button">
                     Follow Playlist
                     </Button>
-                    <Popover placement="bottom" isOpen={popoverOpen} target="Popover1" toggle={this.toggleFollow}>
+                    <UncontrolledPopover placement="right" trigger="legacy" target="PopoverFollow">
                     <PopoverBody>Choose a playlist from the carousel first!</PopoverBody>
-                    </Popover>
+                    </UncontrolledPopover>
+
                     </div>}
+                
+                {plistAlertOpen ? 
+                    <UncontrolledAlert color="success">
+                      You have successfully followed the playlist!
+                    </UncontrolledAlert>
+                  : null}
+                
                 </Fade>
                 : null
                 } 

@@ -1,9 +1,10 @@
 import React, { Component } from 'react';
 import { Container, Row, Col,
-  Button, Fade, Spinner, Alert,
+  Button, Fade,
   } from 'reactstrap';
-import {  faPlayCircle, faPauseCircle, faStepBackward, faStepForward } from "@fortawesome/free-solid-svg-icons";
+import {  faPlayCircle, faPauseCircle, faStepBackward, faStepForward, faCaretUp } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { animateScroll as scroll } from 'react-scroll'
 import Sticky from 'react-sticky-el';
 import SpotifyWebApi from 'spotify-web-api-js';
 
@@ -31,11 +32,12 @@ export default class Player extends Component {
       duration: 1,
     }
 
-    this.playerCheckInterval = setInterval(() => this.checkForPlayer(), 1000);
-
+    this.playerCheckInterval = setInterval(() => this.checkForPlayer(), 1200);
   }
-  
 
+  scrollToTop() {
+    scroll.scrollTo(0); 
+  }
 
   // when we receive a new update from the player
   currentTrackStateChange(state) {  // only update if we got a real state
@@ -163,7 +165,7 @@ export default class Player extends Component {
       <Fade>
       <Row className="row">       
 
-          <Col sm="4" className="margin-10" >  
+          <Col sm="5" className="margin-10" >  
             { currTrack.albumImg ? 
               <div id="currTrack">
               <img src={currTrack.albumImg} alt="album_img" width="140"/>
@@ -174,11 +176,12 @@ export default class Player extends Component {
             }
           </Col>   
           <Col sm="6">
-          <Sticky mode="bottom" className="margin-10">
+          <Sticky mode="bottom" id="player-sticky">
             <Fade>
             <Button active size="lg" color="secondary" className="player-btn" onClick={() => this.onPrevClick()}><FontAwesomeIcon size="lg" icon={faStepBackward}/></Button>
             <Button active size="lg" color="secondary" className="player-btn" onClick={() => this.onPlayClick()}>{playing ? <FontAwesomeIcon size="2x" icon={faPauseCircle}/>: <FontAwesomeIcon size="2x" icon={faPlayCircle}/>} </Button>
-            <Button active size="lg" color="secondary" className="player-btn" onClick={() => this.onNextClick()}><FontAwesomeIcon size="lg" icon={faStepForward}/></Button>  
+            <Button active size="lg" color="secondary" className="player-btn" onClick={() => this.onNextClick()}><FontAwesomeIcon size="lg" icon={faStepForward}/></Button> 
+            <Button active size="lg" color="secondary" id="top-btn"  onClick={this.scrollToTop}><FontAwesomeIcon size="lg" icon={faCaretUp}> </FontAwesomeIcon> </Button>  
             </Fade>
             </Sticky>
           </Col>

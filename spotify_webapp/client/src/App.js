@@ -1,13 +1,12 @@
 import React, { Component } from 'react';
 import './App.css';
 import {   Button  } from 'reactstrap';
+import { Events} from 'react-scroll'
 import SpotifyWebApi from 'spotify-web-api-js';
 import Navi from './components/Navi';
 import Container1 from './components/Container1';
 
-
 const spotifyApi = new SpotifyWebApi();
-
 
 export default class App extends Component {  
 
@@ -25,6 +24,21 @@ export default class App extends Component {
 
   }
 
+  componentDidMount() {
+    Events.scrollEvent.register('begin', function () {
+      console.log("begin", arguments);
+    });
+
+    Events.scrollEvent.register('end', function () {
+      console.log("end", arguments);
+    });
+
+  }
+
+  componentWillUnmount() {
+    Events.scrollEvent.remove('begin');
+    Events.scrollEvent.remove('end');
+  }
 
   getHashParams() {
     var hashParams = {};
@@ -52,7 +66,8 @@ export default class App extends Component {
         <div>
 
           <Navi/>
-          <Container1/>
+          <Container1 />
+        
         </div>
           : <html>
             <body>
