@@ -302,41 +302,48 @@ export default class Preference extends Component {
     
     
     const {
-        highestPredicted
+        highestPredicted,
+        predictions,
+        activatePredictError
     } = this.props;
 
 
   return(
-      <section>      
-        <section id="selectPreference">
-        <Container fluid>
-        <hr className="my-3" />
-        <Col xl="12" className="margin-50_center">
-          <Row>
-          <h1>Choose your preference</h1>
-          </Row>
-          <Row id="preference-btn-group">
-            <Button className="preference-btn" size="lg" color="warning" active={activateTracks ? true : false} onClick={() => this.retrieveRecommendations(highestPredicted.mood, chosenGenres)}>SpotiFace Jukebox</Button>  
-            <Button className="preference-btn" size="lg" color="warning" active={activatePlaylists ? true : false} onClick={() => this.getMoodPlaylist(this.generateMood(highestPredicted.mood))}>Mood Playlists</Button>                                
-          </Row>
-        </Col>
-        <hr className="my-3" />
-        </Container>
-        </section>
+      <section>    
+      {  !activatePredictError && predictions[0] ? 
+          <section id="selectPreference">
+          <Container fluid>
+          <hr className="my-3" />
+          <Col xl="12" className="margin-50_center">
+            <Row>
+            <h1>Choose your preference</h1>
+            </Row>
+            <Row id="preference-btn-group">
+              <Button className="preference-btn" size="lg" color="warning" active={activateTracks ? true : false} onClick={() => this.retrieveRecommendations(highestPredicted.mood, chosenGenres)}>SpotiFace Jukebox</Button>  
+              <Button className="preference-btn" size="lg" color="warning" active={activatePlaylists ? true : false} onClick={() => this.getMoodPlaylist(this.generateMood(highestPredicted.mood))}>Mood Playlists</Button>                                
+            </Row>
+          </Col>
+          <hr className="my-3" />
+          </Container>
+          </section>   : null }
 
-      <Container3 
-        retrieveRecommendations={(chosenGenres) => this.retrieveRecommendations(highestPredicted.mood, chosenGenres)}
-        getMoodPlaylist={() => this.getMoodPlaylist(this.generateMood(highestPredicted.mood))}
-        highestPredicted={highestPredicted}
-        activatePlaylists={activatePlaylists}
-        activateTracks={activateTracks}
-        generatedMood={generatedMood}
-        allGenres={allGenres}
-        genres={genres}
-        feature={feature}
-        playlists={playlists}
-        tracks={tracks}
-      />
+        <Container3 
+          retrieveRecommendations={(chosenGenres) => this.retrieveRecommendations(highestPredicted.mood, chosenGenres)}
+          getMoodPlaylist={() => this.getMoodPlaylist(this.generateMood(highestPredicted.mood))}
+          highestPredicted={highestPredicted}
+          activatePlaylists={activatePlaylists}
+          activateTracks={activateTracks}
+          generatedMood={generatedMood}
+          allGenres={allGenres}
+          genres={genres}
+          feature={feature}
+          playlists={playlists}
+          tracks={tracks}
+          predictions={predictions}
+          activatePredictError={activatePredictError}
+        />
+
+
 
     </section>
     );

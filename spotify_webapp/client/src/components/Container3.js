@@ -183,7 +183,9 @@ export default class Container3 extends Component {
             allGenres,
             genres,
             playlists,
-            tracks
+            tracks,
+            predictions,
+            activatePredictError
         } = this.props;
 
         let modalClose = () => this.setState({ modalShow: false });
@@ -191,6 +193,8 @@ export default class Container3 extends Component {
     return(
         <section>
 
+        {  !activatePredictError && predictions[0] ? 
+            <section> 
             <section id="container3">
             <Container fluid>
             <Row className="row">
@@ -330,7 +334,7 @@ export default class Container3 extends Component {
             onHide={modalClose}
           >
             <Modal.Header closeButton>
-            <h3 id="modal-header"> Choose five genres </h3>
+            <h3 id="modal-header"> Choose at least five genres </h3>
             </Modal.Header>
             <Modal.Body id="modal-gen">
               {allGenres.map((genre, index) => { 
@@ -346,7 +350,7 @@ export default class Container3 extends Component {
             </Modal.Footer>
           </Modal>
 
-
+            </section> : null }
 
         <Player 
         user={user}
