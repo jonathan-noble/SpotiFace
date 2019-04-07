@@ -1,7 +1,8 @@
 import React, { Component } from 'react';
 import '../App.css';
 import { Container, Row, Col, 
-        Button, UncontrolledPopover, PopoverHeader, PopoverBody
+        UncontrolledAlert,
+        Button, UncontrolledPopover, PopoverBody
       } from 'reactstrap';
 import { faCamera, faUpload,
   // faAngry, faFlushed, faSmileBeam, faSurprise, faSadTear, faMeh
@@ -28,12 +29,15 @@ export default class Container1 extends Component {
           imageData: null,
           predictions: {},
           highestPredicted: {},
+          activatePredictError: false,
       }
   }
 
     
   captureShot = () => {
     const screenshot = this.webcam.getScreenshot();
+
+    if(screenshot) {
     let base64Image = screenshot.replace("data:image/jpeg;base64,","");
     this.setState({ 
       imageData: screenshot
@@ -43,9 +47,49 @@ export default class Container1 extends Component {
       image: base64Image
     }
 
-    scroll.scrollTo(600); 
+    scroll.scrollTo(850); 
 
+    let predictions = {
+      "angry":50,
+      "sad": 64,
+      "happy":52,
+      "neutral":10,
+      "surprised":23,
+      "scared": 5
+    }
+  
+    const keys = Object.keys(predictions);
+    const arrayOfPreds = keys.map(key => ({
+      mood: key, 
+      predict: predictions[key]
+      })
+    );
+  
+    console.log(arrayOfPreds);
+  
+    let highestPred = arrayOfPreds.reduce((prev, curr) => {
+      return prev.predict > curr.predict ? prev : curr;
+      });
+  
+    console.log(highestPred.id, highestPred.predict); 
+  
+  
+    let orderedPred = arrayOfPreds.sort((a, b) => {
+        return b.predict - a.predict;
+    });
+    
+    console.log(orderedPred[0]);
+    console.log(orderedPred[0].id);
+    
+    this.setState({
+      predictions: orderedPred
+    })
+  
     this.predictData(message);
+
+   } else {
+     console.log("Turn on your camera.")
+   }
   }
       
   handleFiles = files => {
@@ -76,10 +120,19 @@ export default class Container1 extends Component {
       body: JSON.stringify(message)
       })
       .then((response) => {
-      return response.json();  //response.json() is resolving its promise. It waits for the body to load
+        if((response.ok===false) || (response.status===500)) {
+          this.setState({
+            activatePredictError: true
+          })
+        }  else { 
+          this.setState({
+            activatePredictError: false
+          })
+            return response.json();  //response.json() is resolving its promise. It waits for the body to load
+          }
       })
       .then((data) => {
-        
+         
         const keys = Object.keys(data.prediction);
         // projects data.prediction into an array of object key=prediction pairs
         const arrayOfPreds = keys.map(key => ({
@@ -106,9 +159,8 @@ export default class Container1 extends Component {
             highestPredicted: highestPred,
             predictions: orderedPred
           })
-  
-    })
-    .catch(error => {console.log(error)});
+     })
+    .catch(error => { console.log(error) });
   }
 
     
@@ -123,6 +175,7 @@ export default class Container1 extends Component {
           imageData,
           predictions,
           highestPredicted,
+          activatePredictError,
       } = this.state;
 
   return(
@@ -130,63 +183,63 @@ export default class Container1 extends Component {
       <section id="container1"> 
       <Container fluid>
       <Row className="row">
-          <Col xl="7" className="margin-150">    
-
+          <Col xl="7" className="margin-100">    
                 <Webcam
                 className="webcam-bg round15"
                 audio={false}
                 ref={node => this.webcam = node}
                 screenshotFormat="image/jpeg"
-                width={1000}
+                width={700}
                 height={500}
                 videoConstraints={videoConstraints}
                 /> 
 
+                <section id="pred-error"> 
+                { activatePredictError ?
+                  <section> 
+                  <h2>No Face Detected! </h2>
+                  <p>Possible factors such as no available face detected, blurriness, intense brightness </p> 
+                  <p> or low brightness may have tampered the input. </p>
+                  </section>
+                  : null }
+                </section>  
           </Col>
       
-          <Col xl="4" className="pull-right margin-130">
+          <Col xl="4" className="pull-right margin-100_right">
               <Row> 
                 <h1>Give it a go!</h1>
                 <h3>Let SpotiFace recommend a playlist for<strong><em> you</em></strong>.</h3>
               </Row> 
 
-              <Row className="container1-row">
+              <Row>
                   <Button id="samplePopover1" className="container1-img-btn"><img className="container1-img" src={angry} alt="angry" /> </Button>
                   <UncontrolledPopover placement="left" trigger="focus" target="samplePopover1">
-                  <PopoverHeader><h4>The Angry Wolverine</h4></PopoverHeader>
                   <PopoverBody>Here's how you do a proper angry face!</PopoverBody>
                   </UncontrolledPopover>
 
                   <Button id="samplePopover2" className="container1-img-btn"><img className="container1-img" src={scared} alt="scared" /> </Button>
                   <UncontrolledPopover placement="left" trigger="focus" target="samplePopover2">
-                  <PopoverHeader><h4>The Scared Chicken</h4></PopoverHeader>
-                  <PopoverBody>AAAAAAAHHHHH!</PopoverBody>
+                  <PopoverBody>AAAAAAAAAAAHHHHHHHHH!</PopoverBody>
                   </UncontrolledPopover>
 
                   <Button id="samplePopover3" className="container1-img-btn"><img className="container1-img" src={happy} alt="happy" /> </Button>
                   <UncontrolledPopover placement="left" trigger="focus" target="samplePopover3">
-                  <PopoverHeader><h4>The Beaming Smile</h4></PopoverHeader>
-                  <PopoverBody>Say CHEEEESE!</PopoverBody>
+                  <PopoverBody>Say CHEEEEEEEEESE!</PopoverBody>
                   </UncontrolledPopover>
               </Row>
-              <Row className="container1-row">
-
-
+              <Row>
                   <Button id="samplePopover4" className="container1-img-btn"><img className="container1-img" src={sad} alt="sad"></img> </Button>
                   <UncontrolledPopover placement="left" trigger="focus" target="samplePopover4">
-                  <PopoverHeader><h4>The Heartbroken</h4></PopoverHeader>
-                  <PopoverBody>We need genuine tears for this!</PopoverBody>
+                  <PopoverBody>We need genuine tears for this one!</PopoverBody>
                   </UncontrolledPopover>
 
                   <Button id="samplePopover5" className="container1-img-btn"><img className="container1-img" src={surprised} alt="surprised" /> </Button>
                   <UncontrolledPopover placement="left" trigger="focus" target="samplePopover5">
-                  <PopoverHeader><h4>The Shocking News</h4></PopoverHeader>
                   <PopoverBody>Have you got any goss?</PopoverBody>
                   </UncontrolledPopover>
 
                   <Button id="samplePopover6" className="container1-img-btn"><img className="container1-img" src={neutral} alt="neutral" /> </Button>
                   <UncontrolledPopover placement="left" trigger="focus" target="samplePopover6">
-                  <PopoverHeader><h4>The Chill Dude</h4></PopoverHeader>
                   <PopoverBody>Take a chill pill and relax!</PopoverBody>
                   </UncontrolledPopover>
 
@@ -200,29 +253,37 @@ export default class Container1 extends Component {
                 <FontAwesomeIcon className="emoji" size="2x" icon={faMeh}> </FontAwesomeIcon> /**} */}
               </Row>
                     <br/>
-              <Row className="container1-row">       
-                <Button color="warning" size="lg" onClick={() => this.captureShot()}  className="camera-btn">
+              <Row>      
+                <Button outline color="secondary" className="camera-btn" size="lg" onClick={() => this.captureShot()}>
                  <FontAwesomeIcon size="lg" icon={faCamera}/> Take a photo
                 </Button> 
 
                 <ReactFileReader fileTypes={[".jpg",".jpeg", ".png", ".tiff", ".bmp"]} base64={true} multipleFiles={false} handleFiles={this.handleFiles}>
-                  <Button color="warning" size="lg" className="react-file-reader-button"><FontAwesomeIcon size="lg" icon={faUpload}/> Upload</Button>
+                  <Button outline color="secondary" size="lg" className="reader-btn"><FontAwesomeIcon size="lg" icon={faUpload}/> Upload</Button>
                 </ReactFileReader>  
               </Row>
 
+              <br/>
+              <UncontrolledAlert color="info" style={{marginLeft: -10}}>
+              Try acting one of the faces below!
+             </UncontrolledAlert> 
           </Col>
       </Row>
       </Container>
       </section>
 
+      {  !activatePredictError && predictions[0] ? 
+        <section>
+        <Container2
+          imageData={imageData} 
+          predictions={predictions}
+          highestPredicted={highestPredicted}
+          activatePredictError={activatePredictError}/>
 
-      <Container2
-        imageData={imageData} 
-        predictions={predictions}
-        highestPredicted={highestPredicted}/>
-
-      <Preference highestPredicted={highestPredicted}/>
-
+        <Preference highestPredicted={highestPredicted}/>
+      </section>
+        : null 
+      }
     </section>  
     );
   }

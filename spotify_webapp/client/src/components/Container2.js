@@ -17,42 +17,44 @@ export default class Container2 extends Component {
         const {
             imageData,
             predictions,
-            highestPredicted
+            highestPredicted,
+            activatePredictError,
         } = this.props;
     return(
         
         <section id="container2">
         <Container fluid>
         <Row className="row">
-            <Col sm="5" className="pull-left text-left margin-100">
+            <Col sm="5" className="pull-left text-left margin-10_bot">
 
 
-           { predictions[0] ? 
+           { !activatePredictError && predictions[0]  ? 
             <section >
-                <Fade>
-                <h2 id="highest-predictions"> Your current mood is: {highestPredicted.mood} </h2>
-                <br/>
-                    <div className="predictions">{predictions[0].mood}</div>
-                    <Progress bar color="success" value={predictions[0].predict} animated><h5>{predictions[0].predict}%</h5></Progress>
+            <Fade>
+            <h2 id="highest-predictions"> Your current mood is: {highestPredicted.mood} </h2>
+            <hr className="my-2" />
 
-                    <div className="predictions">{predictions[1].mood}</div>
-                    <Progress bar className="prediction-p" value={predictions[1].predict}><h5>{predictions[1].predict}%</h5></Progress>
+                <div className="predictions">{predictions[0].mood}</div>
+                <Progress bar color="success" value={predictions[0].predict} animated><h5>{predictions[0].predict}%</h5></Progress>
 
-                    <div className="predictions">{predictions[2].mood}</div>
-                    <Progress bar className="prediction-p" color="info" value={predictions[2].predict}><h5>{predictions[2].predict}%</h5></Progress>
+                <div className="predictions">{predictions[1].mood}</div>
+                <Progress bar className="prediction-p" color="info" value={predictions[1].predict}><h5>{predictions[1].predict}%</h5></Progress>
 
-                    <div className="predictions">{predictions[3].mood}</div>
-                    <Progress bar className="prediction-p" color="info" value={predictions[3].predict}><h5>{predictions[3].predict}%</h5></Progress>
+                <div className="predictions">{predictions[2].mood}</div>
+                <Progress bar className="prediction-p" color="info" value={predictions[2].predict}><h5>{predictions[2].predict}%</h5></Progress>
 
-                    <div className="predictions">{predictions[4].mood}</div>
-                    <Progress bar className="prediction-p" color="info" value={predictions[4].predict}><h5>{predictions[4].predict}%</h5></Progress>
+                <div className="predictions">{predictions[3].mood}</div>
+                <Progress bar className="prediction-p" color="info" value={predictions[3].predict}><h5>{predictions[3].predict}%</h5></Progress>
 
-                    <div className="predictions">{predictions[5].mood}</div>
-                    <Progress bar className="prediction-p" color="danger" value={predictions[5].predict}><h5>{predictions[5].predict}%</h5></Progress>
-                </Fade> 
+                <div className="predictions">{predictions[4].mood}</div>
+                <Progress bar className="prediction-p" color="info" value={predictions[4].predict}><h5>{predictions[4].predict}%</h5></Progress>
 
+                <div className="predictions">{predictions[5].mood}</div>
+                <Progress bar className="prediction-p" color="danger" value={predictions[5].predict}><h5>{predictions[5].predict}%</h5></Progress>
+            <hr className="my-2" />
             <Button outline size="lg" color="secondary" className="container3-btn" onClick={this.scrollToTop}> One more time?</Button>
-            </section>  :  null
+            </Fade> 
+            </section>:  null
              }
 
 
@@ -61,7 +63,8 @@ export default class Container2 extends Component {
             <Col xl="6">
             {imageData ? 
                 <Fade> <p><img className="container2-img img-responsive pull-right round15" src={imageData} alt="Snapshot"/></p> </Fade>
-                : null}
+                :  null
+                }
 
             </Col>          
         </Row>

@@ -163,7 +163,7 @@ export default class Player extends Component {
       <section className="round10bot" id="player">
       <Container fluid> 
       <Fade>
-      <Row className="row">       
+      <Row>       
 
           <Col sm="5" className="margin-10" >  
             { currTrack.albumImg ? 
@@ -175,13 +175,13 @@ export default class Player extends Component {
               : null
             }
           </Col>   
-          <Col sm="6">
+          <Col sm="6" className="margin-10" >
           <Sticky mode="bottom" id="player-sticky">
             <Fade>
-            <Button active size="lg" color="secondary" className="player-btn" onClick={() => this.onPrevClick()}><FontAwesomeIcon size="lg" icon={faStepBackward}/></Button>
-            <Button active size="lg" color="secondary" className="player-btn" onClick={() => this.onPlayClick()}>{playing ? <FontAwesomeIcon size="2x" icon={faPauseCircle}/>: <FontAwesomeIcon size="2x" icon={faPlayCircle}/>} </Button>
-            <Button active size="lg" color="secondary" className="player-btn" onClick={() => this.onNextClick()}><FontAwesomeIcon size="lg" icon={faStepForward}/></Button> 
-            <Button active size="lg" color="secondary" id="top-btn"  onClick={this.scrollToTop}><FontAwesomeIcon size="lg" icon={faCaretUp}> </FontAwesomeIcon> </Button>  
+            <Button active size="sm" color="secondary" className="player-btn" onClick={() => this.onPrevClick()}><FontAwesomeIcon size="lg" icon={faStepBackward}/></Button>
+            <Button active size="sm" color="secondary" className="player-btn" onClick={() => this.onPlayClick()}>{playing ? <FontAwesomeIcon size="2x" icon={faPauseCircle}/>: <FontAwesomeIcon size="2x" icon={faPlayCircle}/>} </Button>
+            <Button active size="sm" color="secondary" className="player-btn" onClick={() => this.onNextClick()}><FontAwesomeIcon size="lg" icon={faStepForward}/></Button> 
+            <Button active size="sm" color="secondary" id="top-btn"  onClick={this.scrollToTop}><FontAwesomeIcon size="lg" icon={faCaretUp}> </FontAwesomeIcon> </Button>  
             </Fade>
             </Sticky>
           </Col>

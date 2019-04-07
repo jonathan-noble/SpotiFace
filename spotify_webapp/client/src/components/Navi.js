@@ -23,8 +23,6 @@ export default class Navi extends Component {
     getCurrentUser() {
       spotifyApi.getMe()
       .then((_user) => {
-        console.log(_user);
-
         const user = {
           name: _user.display_name,
           user_id: _user.id,
@@ -50,7 +48,7 @@ export default class Navi extends Component {
 
     return(
       <section>
-          <Navbar className="round10top" color="dark" light expand="md">
+          <Navbar color="dark" dark expand="md">
           <NavbarBrand href="http://localhost:8888"><h1>SpotiFace</h1></NavbarBrand>
           <Nav className="ml-auto" navbar justified>
           <NavItem>

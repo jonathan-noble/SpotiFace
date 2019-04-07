@@ -41,10 +41,10 @@ app.get('/login', function(req, res) {
   let state = generateRandomString(16);
   res.cookie(stateKey, state);
 
-  // your application requests authorization
   let scope = 
   'streaming user-read-private user-read-email user-read-birthdate user-read-playback-state user-modify-playback-state playlist-read-private playlist-modify-public playlist-modify-private user-top-read';
   
+    // the application requests authorization
   res.redirect('https://accounts.spotify.com/authorize?' +
     querystring.stringify({
       response_type: 'code',
@@ -58,7 +58,7 @@ app.get('/login', function(req, res) {
 
 app.get('/callback', function(req, res) {
 
-  // your application requests refresh and access tokens
+  // the application requests refresh and access tokens
   // after checking the state parameter
 
   let code = req.query.code || null;

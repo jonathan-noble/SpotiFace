@@ -3,7 +3,9 @@ import '../App.css';
 import { Container, Row, Col, 
     Button, Fade,
     ListGroup, ListGroupItem, Jumbotron,
-    UncontrolledPopover, PopoverBody, UncontrolledAlert } from 'reactstrap';
+    UncontrolledAlert } from 'reactstrap';
+
+import {ButtonToolbar, Modal} from 'react-bootstrap';
 import "react-responsive-carousel/lib/styles/carousel.min.css";
 import { animateScroll as scroll } from 'react-scroll'
 import { Carousel } from 'react-responsive-carousel';
@@ -20,13 +22,35 @@ export default class Container3 extends Component {
             user: {},
             playlistID: "",
             trackAlertOpen: false,
-            plistAlertOpen: false
+            plistAlertOpen: false,
+            chosenGenres: [],
+            activateGenreLimit: false,
+            modalShow: false 
         }
+      this.onCheckboxBtnClick = this.onCheckboxBtnClick.bind(this);
     }
 
     componentDidMount() {
         this.getCurrentUser();
     }
+
+    onCheckboxBtnClick(selected) {
+        const index = this.state.chosenGenres.indexOf(selected);
+        if (index < 0) {
+            this.state.chosenGenres.push(selected);
+        } else {
+            this.state.chosenGenres.splice(index, 1);
+        }
+
+        if(this.state.chosenGenres.length > 5) {
+            this.state.chosenGenres.splice(0, this.state.chosenGenres.length)
+        }
+
+        console.log(this.state.chosenGenres);
+        
+        this.setState({ chosenGenres: [...this.state.chosenGenres] });
+    }
+
 
     getCurrentUser() {
         spotifyApi.getMe()
@@ -48,10 +72,8 @@ export default class Container3 extends Component {
         });     
       }
 
-    
-
     getTracksToPlay(track_uri) {
-        scroll.scrollTo(1650); 
+        scroll.scrollTo(1930); 
         let trackURI = [];
         trackURI.push(track_uri);
         console.log(trackURI);
@@ -63,7 +85,7 @@ export default class Container3 extends Component {
 
     getPlaylistToPlay(plist) {
         
-     scroll.scrollTo(1650); 
+     scroll.scrollTo(1670); 
         
         if(plist != null) {
         let trackIds = [];
@@ -138,11 +160,14 @@ export default class Container3 extends Component {
         })
     }
 
+
     render() {
 
         const {
             user,
             playlistID,
+            modalShow,
+            chosenGenres,
             trackAlertOpen,
             plistAlertOpen
         } = this.state;
@@ -155,11 +180,13 @@ export default class Container3 extends Component {
             activateTracks,
             activatePlaylists,
             generatedMood,
+            allGenres,
             genres,
-            feature,
             playlists,
             tracks
         } = this.props;
+
+        let modalClose = () => this.setState({ modalShow: false });
 
     return(
         <section>
@@ -167,7 +194,7 @@ export default class Container3 extends Component {
             <section id="container3">
             <Container fluid>
             <Row className="row">
-                <Col sm="7" className="wow fadeInUpBig margin-100">  
+                <Col sm="7" className="wow fadeInUpBig margin-50_bot">  
 
                 { activateTracks ?
                 <Fade>
@@ -215,29 +242,45 @@ export default class Container3 extends Component {
 
                 </Col>
             
-                <Col xl="4" className="margin-minus_40">
+                <Col xl="4" className="margin-minus_40 pull-right text-right">
 
                 { activateTracks ?
                 <Fade>
-                <Jumbotron fluid className="jumbo pull-right text-right">
+                <Jumbotron fluid className="jumbo">
                 <Container fluid>
-                    <h1 className="display-3 jumbo-txt">SpotiFace Jukebox</h1>
-                    <p className="lead jumbo-txt">Fresh, algorithm-picked tracks based on tuneable track attributes corresponding to your mood being <strong>{highestPredicted.mood}</strong>!</p>
+                    <h1 className="display-4 jumbo-txt">SpotiFace Jukebox</h1>
+                    <p className="lead jumbo-txt">Fresh, algorithm-picked tracks based on track attributes corresponding to your <strong><em>{highestPredicted.mood}</em></strong> mood!</p>
                     <hr className="my-2" />
+               {/*
                     {feature.map((_feature) => {
-                    return <div key={_feature.id}>
-                        <p className="jumbo-txt"> {_feature.id}:  {_feature.val} </p>
-                    </div>
-                    })}
+                        return <div key={_feature.id}>
+             
+                        <p> {_feature.id} : {_feature.val}</p> 
 
-                    <hr className="my-2" />
-                    <p className="jumbo-txt">Genres: {genres} </p>
+                         <div className="predictions">{_feature.id}</div>
+                         <Progress bar color="" max={this.maxFeatureVal(_feature.id)} value={_feature.val}><h6>{_feature.val}</h6></Progress>
+                        
+                        </div>
+                        })}
+                        */}         
+                    <p>Current genres: {genres} </p>
+                    <hr className="my-2" />     
+                        <ButtonToolbar>
+                        <Button outline id="genre-btn" size="lg" color="secondary" onClick={() => this.setState({ modalShow: true })}
+                        >
+                            Customize Genres
+                        </Button>          
+                        </ButtonToolbar>
                 </Container>
                 </Jumbotron> 
+                
                 <div id="container3-btn-group"> 
-                    <Button outline className="container3-btn" color="secondary" size="lg" onClick={retrieveRecommendations}>Reload</Button>  
-                    <Button outline className="container3-btn" color="secondary" size="lg" onClick={() => this.appendPlaylist(user.user_id, tracks)}>Add to Library</Button>
+                    <Row>
+                        <Button outline className="container3-btn" color="secondary" size="lg" onClick={() => retrieveRecommendations(chosenGenres)}>Reload</Button>  
+                        <Button outline className="container3-btn" color="secondary" size="lg" onClick={() => this.appendPlaylist(user.user_id, tracks)}>Add to Library</Button>
+                    </Row>
                 </div>
+
                
                 {trackAlertOpen ? 
                     <UncontrolledAlert color="success">
@@ -253,28 +296,17 @@ export default class Container3 extends Component {
                 <Fade>
                 <Jumbotron fluid className="jumbo pull-right text-right">
                 <Container fluid>
-                    <h1 className="display-3 jumbo-txt">Mood Playlists</h1>
-                    <p className="lead jumbo-txt">Choose a public-created playlist that suits your mood</p>
+                    <h1 className="display-4 jumbo-txt">Mood Playlists</h1>
+                    <p className="lead jumbo-txt">Public-created playlists that suits your mood</p>
                     <hr className="my-2" />
                     <p className="jumbo-txt">The category is based on: {generatedMood}</p>
                 </Container>
                 </Jumbotron>
                 
-                {playlistID ? 
-                    <div id="container3-btn-group"> 
-                    <Button outline size="lg" className="container3-btn" color="secondary" onClick={getMoodPlaylist}>Reload</Button>  
-                    <Button outline size="lg" className="container3-btn" color="secondary" onClick={() => this.followPlaylist(playlistID)}>Follow Playlist</Button>  
-                    </div>
-                    :  <div id="container3-btn-group">
-                    <Button outline size="lg" className="container3-btn" color="secondary" onClick={getMoodPlaylist}>Reload</Button>  
-                    <Button outline size="lg" className="container3-btn" color="secondary" id="PopoverFollow" type="button">
-                    Follow Playlist
-                    </Button>
-                    <UncontrolledPopover placement="right" trigger="legacy" target="PopoverFollow">
-                    <PopoverBody>Choose a playlist from the carousel first!</PopoverBody>
-                    </UncontrolledPopover>
-
-                    </div>}
+                <div id="container3-btn-group"> 
+                <Button outline size="lg" className="container3-btn" color="secondary" onClick={() => {getMoodPlaylist(); this.setState({ playlistID: null}) }}>Reload</Button>  
+                <Button size="lg" className="container3-btn" color="secondary" onClick={() => this.followPlaylist(playlistID)} disabled={!playlistID ? true: false}>Follow Playlist</Button>  
+                </div>
                 
                 {plistAlertOpen ? 
                     <UncontrolledAlert color="success">
@@ -291,12 +323,36 @@ export default class Container3 extends Component {
             </Container>
             </section>
 
-        
-                <Player 
-                user={user}
-                activateTracks={activateTracks}
-                playlistID={playlistID}
-                />
+            <Modal
+            size="lg"
+            centered
+            show={modalShow}  
+            onHide={modalClose}
+          >
+            <Modal.Header closeButton>
+            <h3 id="modal-header"> Choose five genres </h3>
+            </Modal.Header>
+            <Modal.Body id="modal-gen">
+              {allGenres.map((genre, index) => { 
+                  return <div key={index}>
+                  <Button outline className="modal-gen-btn" color="secondary" onClick={() => this.onCheckboxBtnClick(genre)} 
+                   active={chosenGenres.includes(genre)}>{genre}</Button>
+                  </div>
+              })}
+            </Modal.Body>
+            <Modal.Footer>
+              <Button outline className="modal-gen-btn" color="secondary" size="sm" onClick={() => {modalClose(); retrieveRecommendations(chosenGenres)}}>Customize</Button>{' '}
+                  <Button outline className="modal-gen-btn" color="secondary" size="sm" onClick={modalClose}>Cancel</Button>
+            </Modal.Footer>
+          </Modal>
+
+
+
+        <Player 
+        user={user}
+        activateTracks={activateTracks}
+        playlistID={playlistID}
+        />
 
         </section>
      );

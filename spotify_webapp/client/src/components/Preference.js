@@ -15,6 +15,8 @@ export default class Preference extends Component {
       activateTracks: false,
       activatePlaylists: false,
       generatedMood: '',
+      allGenres: [],
+      chosenGenres: [],
       genres: [],
       feature: [],
       playlists: [],
@@ -22,9 +24,9 @@ export default class Preference extends Component {
     }
   }
   
-  retrieveRecommendations(moodGen) {
+  retrieveRecommendations(moodGen, chosenGenres) {
 
-    scroll.scrollTo(1411); 
+    scroll.scrollTo(1750); 
 
     let features = {};
 
@@ -39,9 +41,9 @@ export default class Preference extends Component {
         features.acousticness=0.0;
         features.danceability=0.5;
         features.target_energy=1.0;
-        features.target_loudness=(-10.0);
         features.max_instrumentalness=1.0;
         features.min_instrumentalness=0.0;
+        features.target_loudness=(-10.0);
         features.max_tempo= 180;
         features.min_tempo=70;
         features.target_valence=0.1;
@@ -50,9 +52,9 @@ export default class Preference extends Component {
         features.acousticness=0.2;
         features.target_danceability=0.2;
         features.target_energy=0.4;
+        features.target_instrumentalness=0.7;
         features.max_loudness= (-1.5);
         features.min_loudness=0.5;
-        features.target_instrumentalness=0.7;
         features.target_mode=0;
         features.tempo=100;
         features.valence=0.4;
@@ -61,9 +63,9 @@ export default class Preference extends Component {
         features.acousticness=0.5;
         features.target_danceability=1.0;
         features.target_energy=1.0; 
-        features.loudness= (-5.5);
         features.max_instrumentalness= 0.6;
         features.min_instrumentalness=0.1;
+        features.loudness= (-5.5);
         features.target_mode=1.0;
         features.tempo=125;
         features.target_valence=1.0;
@@ -72,9 +74,9 @@ export default class Preference extends Component {
         features.max_acousticness=0.8;
         features.target_danceability=0.1;
         features.target_energy=0.1;
-        features.loudness=(2.5);
         features.max_instrumentalness= 0.8;
         features.min_instrumentalness=0.2;
+        features.loudness=(2.5);
         features.target_mode=0;
         features.tempo=80;
         features.target_valence=0.0;
@@ -83,30 +85,33 @@ export default class Preference extends Component {
         features.max_acousticness=0.4;
         features.target_danceability=0.7;
         features.target_energy=0.7;
+        features.loudness= (-6.5);
         features.max_instrumentalness=0.8;
         features.min_instrumentalness=0.4;
-        features.loudness= (-6.5);
         features.target_mode=1;
         features.tempo=110;
         features.valence=0.7;
         break;
       case 'neutral':
-        features.acousticness=0.6;
+        features.max_acousticness=0.8;
+        features.min_acousticness=0.4;
         features.target_danceability=0.5;
         features.target_energy=0.5;
         features.target_instrumentalness=1.0;
         features.loudness= (-0.5);
         features.max_tempo=105;
+        features.min_tempo=80;
         features.target_valence=0.5;
         break;
       default:
         features.acousticness=0.5;
         features.target_danceability=0.9;
         features.target_energy=0.8;
+        features.target_instrumentalness=0.6;
         features.max_loudness= (-4.5);
         features.min_loudness=1.0;
-        features.target_instrumentalness=0.6;
         features.tempo=100;
+        features.mode=1;
         features.valence=1.0;
         break;
     }
@@ -124,20 +129,26 @@ export default class Preference extends Component {
 
     spotifyApi.getAvailableGenreSeeds()
     .then((genre) => {
-      // console.log(genre.genres);
-      // let _genre = []
-      // switch(moodGen) {
-      //   case 'happy':
-      //     genre.genres[0]
-      //     break;
+      
+      this.setState({
+          allGenres: genre.genres
+      })
 
-      // }
-      console.log(genre.genres[0])
-      return genre.genres; // genre.genres[0];
+      return genre.genres; // all genres available in Spotify (currently 126 genres)
     })
     .then((_genre) => {
-      const shuffledGenre = _genre.sort(() => .5 - Math.random());
-      let genres = shuffledGenre.slice(0,3).join(',') ;
+
+      let genres = []
+
+  
+      if(chosenGenres.length > 0) {
+        genres = chosenGenres.toString();
+        // chosenGenres.length = 0;
+      } else {
+        const shuffledGenre = _genre.sort(() => .5 - Math.random());
+        genres = shuffledGenre.slice(0,3).join(',');
+      }
+
       console.log(genres);
 
       this.setState({
@@ -201,7 +212,7 @@ export default class Preference extends Component {
   getMoodPlaylist = (generatedMood)  => {
     console.log(generatedMood);
 
-    scroll.scrollTo(1100); 
+    scroll.scrollTo(1500); 
 
     this.setState({
       generatedMood,
@@ -281,6 +292,8 @@ export default class Preference extends Component {
       activatePlaylists,
       activateTracks,
       generatedMood,
+      allGenres,
+      chosenGenres,
       genres,
       feature,
       playlists,
@@ -294,28 +307,31 @@ export default class Preference extends Component {
 
 
   return(
-      <section> 
+      <section>      
         <section id="selectPreference">
         <Container fluid>
+        <hr className="my-3" />
         <Col xl="12" className="margin-50_center">
           <Row>
           <h1>Choose your preference</h1>
           </Row>
           <Row id="preference-btn-group">
-            <Button className="preference-btn" size="lg" color="warning" active={activateTracks ? true : false} onClick={() => this.retrieveRecommendations(highestPredicted.mood)}>SpotiFace Jukebox</Button>  
+            <Button className="preference-btn" size="lg" color="warning" active={activateTracks ? true : false} onClick={() => this.retrieveRecommendations(highestPredicted.mood, chosenGenres)}>SpotiFace Jukebox</Button>  
             <Button className="preference-btn" size="lg" color="warning" active={activatePlaylists ? true : false} onClick={() => this.getMoodPlaylist(this.generateMood(highestPredicted.mood))}>Mood Playlists</Button>                                
           </Row>
         </Col>
+        <hr className="my-3" />
         </Container>
         </section>
 
       <Container3 
-        retrieveRecommendations={() => this.retrieveRecommendations(highestPredicted.mood)}
+        retrieveRecommendations={(chosenGenres) => this.retrieveRecommendations(highestPredicted.mood, chosenGenres)}
         getMoodPlaylist={() => this.getMoodPlaylist(this.generateMood(highestPredicted.mood))}
         highestPredicted={highestPredicted}
         activatePlaylists={activatePlaylists}
         activateTracks={activateTracks}
         generatedMood={generatedMood}
+        allGenres={allGenres}
         genres={genres}
         feature={feature}
         playlists={playlists}
