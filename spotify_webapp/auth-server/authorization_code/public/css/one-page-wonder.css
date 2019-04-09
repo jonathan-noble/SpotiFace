@@ -134,13 +134,14 @@ header.masthead .bg-circle-4 {
 }
 
 .btn-primary {
-  background-color: #ee0979;
-  border-color: #ee0979;
+  background-color: #e7b21f;
+  border-color: #e7b21f;
+  color: black;
 }
 
 .btn-primary:active, .btn-primary:focus, .btn-primary:hover {
-  background-color: #bd0760 !important;
-  border-color: #bd0760 !important;
+  background-color: #6c757d !important;
+  border-color: #6c757d !important;
 }
 
 .btn-primary:focus {

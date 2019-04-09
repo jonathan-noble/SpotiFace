@@ -67,7 +67,7 @@ export default class Container1 extends Component {
       image: base64Image
     }
     
-    scroll.scrollTo(600); 
+    scroll.scrollTo(850); 
 
     this.predictData(message);
   }

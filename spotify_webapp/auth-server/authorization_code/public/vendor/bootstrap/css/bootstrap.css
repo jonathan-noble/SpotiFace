@@ -4087,6 +4087,7 @@ input[type="button"].btn-block {
   border: 1px solid transparent;
   border-top-left-radius: 0.25rem;
   border-top-right-radius: 0.25rem;
+
 }
 
 .nav-tabs .nav-link:hover, .nav-tabs .nav-link:focus {
@@ -4173,7 +4174,7 @@ input[type="button"].btn-block {
   display: inline-block;
   padding-top: 0.3125rem;
   padding-bottom: 0.3125rem;
-  margin-right: 1rem;
+  margin-left: -27rem;
   font-size: 1.25rem;
   line-height: inherit;
   white-space: nowrap;
@@ -4191,6 +4192,7 @@ input[type="button"].btn-block {
   padding-left: 0;
   margin-bottom: 0;
   list-style: none;
+  margin-right: -20rem;
 }
 
 .navbar-nav .nav-link {
@@ -8456,6 +8458,9 @@ button.bg-dark:focus {
   .mb-sm-5,
   .my-sm-5 {
     margin-bottom: 3rem !important;
+  }
+  .mb-sm-10 {
+    margin-bottom: 10rem !important;
   }
   .ml-sm-5,
   .mx-sm-5 {
