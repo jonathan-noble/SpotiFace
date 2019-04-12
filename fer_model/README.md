@@ -19,9 +19,6 @@ To run the Flask web server:
 #### ferplayer.py
 - This file loads the produced model, renders the ReactJS application, uses Flask to serve as the middleware for receiving images and sending back the score of predictions and pre-processes the image for face detection.
 
-### static and templates	
-- The directories where the React application is configured to be placed in 
-
 #### config/emotion_config.py
 - The configuration for paths and where NUM_CLASSES and BATCH_SIZE are defined.
 
@@ -69,3 +66,6 @@ and training_monitor.py used for illustrating the loss/accuracy plot of the curr
 
 #### requirements.txt
 - The packages that are used in the virtual environment. Refer to this file when setting up the virtual environment.
+
+#### static and templates	
+- The directories where the React application is configured to be placed in 
