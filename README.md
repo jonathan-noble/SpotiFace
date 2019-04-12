@@ -1,5 +1,6 @@
 # A Mood-Based Music Player: Final Year Project [![Build Status](https://travis-ci.org/jonathan-noble/SpotiFace.svg?branch=master)](https://travis-ci.org/jonathan-noble/emotion-detection-player)
 
+## Overview
 SpotiFace is a music service web application that recommends a playlist according to the user’s captured facial expression. This project is comprised of two components embodied in one system: 
   
   * The front-end, developed in ReactJS, is responsible for sending the captured image by the camera or the chosen file from the local device towards the back-end for further prediction, and a music player pulling the data via Spotify API corresponding to the highest predicted emotion. 
@@ -11,6 +12,7 @@ The computer vision fundamentals, deep learning knowledge and sample codes that 
 
 The state-of-the-art web application is built under the Node.js platform which uses the Express framework, React library and the well-documented [API from Spotify](https://developer.spotify.com/documentation/web-api/) to create services corresponding to the labelled mood of the FER model. This component is stored under the **spotify_webapp** directory.
 
+## Instructions
 The instructions in running this full-stack application locally are:
 
   1. Head towards the **spotify_webapp** directory and `cd authorization_code`
@@ -21,6 +23,8 @@ The instructions in running this full-stack application locally are:
   6. Set the flask server with `set FLASK_APP=ferplayer.py`
   7. Run the application with `flask run --host=0.0.0.0`. Voila!
   8. The full-stack application should be up and running for facial expression recognition, score predictions, recommendations and some music!
+  
+
 
 
   
