@@ -1,4 +1,4 @@
-# A Mood-Based Music Player: Final Year Project [![Build Status](https://travis-ci.org/jonathan-noble/emotion-detection-player.svg?branch=master)](https://travis-ci.org/jonathan-noble/emotion-detection-player)
+# A Mood-Based Music Player: Final Year Project [![Build Status](https://travis-ci.org/jonathan-noble/SpotiFace.svg?branch=master)](https://travis-ci.org/jonathan-noble/emotion-detection-player)
 
 SpotiFace is a music service web application that recommends a playlist according to the user’s captured facial expression. This project is comprised of two components embodied in one system: 
   
