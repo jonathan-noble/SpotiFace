@@ -9,13 +9,14 @@ SpotiFace is a music service web application that recommends a playlist accordin
   
 The main goal of this project is to provide a supplementary approach for accessibility in music applications and initiate convenience for users where promptly deciding to browse or search for a playlist can be mitigated by a feature utilizing the state-of-the-art technologies applied with Deep Learning. 
 
-The computer vision fundamentals, deep learning knowledge and sample codes that have significantly aided the Facial Expression Recognition (FER) model is from a book bundle "Deep Learning For Computer Vision" by Dr. Adrian Rosebrock. Moreover, the dataset I acquired is from a [Kaggle Contest](https://www.kaggle.com/c/challenges-in-representation-learning-facial-expression-recognition-challenge/data). The aforementioned (FER) model is stored under the **fer_model** directory.
+The computer vision fundamentals, deep learning knowledge and sample codes that have significantly aided the Facial Expression Recognition (FER) model is from a book bundle "Deep Learning For Computer Vision" by Dr. Adrian Rosebrock. Moreover, the dataset I acquired is from a [Kaggle Contest](https://www.kaggle.com/c/challenges-in-representation-learning-facial-expression-recognition-challenge/data). The aforementioned FER model is stored under the **fer_model** directory.
 
 The state-of-the-art web application is built under the Node.js platform which uses the Express framework, React library and the well-documented [API from Spotify](https://developer.spotify.com/documentation/web-api/) to create services corresponding to the labelled mood of the FER model. This component is stored under the **spotify_webapp** directory.
 
 ## Key Features
 - Spotify OAuth2.0
-- Facial Expression Recognition
+- Spotify API endpoints
+- Facial Expression Recognition and Highest Prediction of mood
 - SpotiFace Jukebox - Recommendations based on tuneable track attributes e.g. Valence, corresponding to the mood
 - Mood Playlists - Recommendations based on associated keyword corresponding to the mood
 - Following/ Adding a playlist to the library
