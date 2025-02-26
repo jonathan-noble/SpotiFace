@@ -7,7 +7,7 @@ SpotiFace is a music service web application that recommends a playlist accordin
 
   * The back-end, built in Python with the microframework Flask, consists of a face detection with image processing techniques, and a machine-learning model powered by the VGG-16 network which can recognize the user's captured facial expression and post the aforementioned highest predicted emotion – ranging from six classes of emotion: happy, sad, angry, neutral, scared and surprised – back to the application.
   
-The main goal of this project is to provide a supplementary approach for accessibility in music applications and initiate convenience for users where promptly deciding to browse or search for a playlist can be mitigated by a feature utilizing the state-of-the-art technologies applied with Deep Learning. 
+The primary aim of this project is to enhance accessibility in music applications by providing an alternative approach that streamlines user convenience. It reduces the need for manual playlist browsing or searching through a feature that leverages cutting-edge Deep Learning technologies.
 
 The computer vision fundamentals, deep learning knowledge and sample codes that have significantly aided the Facial Expression Recognition (FER) model is from a book bundle "Deep Learning For Computer Vision" by Dr. Adrian Rosebrock. Moreover, the dataset I acquired is from a [Kaggle Contest](https://www.kaggle.com/c/challenges-in-representation-learning-facial-expression-recognition-challenge/data). The aforementioned FER model is stored under the **fer_model** directory.
 
